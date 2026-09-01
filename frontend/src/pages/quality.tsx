@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 const MOCK_HISTORY = Array.from({length:14},(_,i)=>({
   date: new Date(1735689600000-(13-i)*86400000).toISOString().split("T")[0],
@@ -31,7 +32,7 @@ export default function QualityPage() {
         ))}
       </div>
       <div className="glass-card">
-        <h2 style={{fontSize:"1.1rem",fontWeight:700,marginBottom:"1rem"}}>Provenance Mix Over Time</h2>
+        <h2 style={{fontSize:"1.1rem",fontWeight:700,marginBottom:"1rem"}}>Provenance Mix Over Time <InfoTooltip text="Reconstructed data is derived via mathematical modeling and secondary sources rather than direct scraping." /></h2>
         <ResponsiveContainer width="100%" height={320}>
           <BarChart data={MOCK_HISTORY}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)"/>

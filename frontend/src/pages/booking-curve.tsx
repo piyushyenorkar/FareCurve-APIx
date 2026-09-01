@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 const ROUTES = ["DEL-BOM","DEL-BLR","BOM-BLR","DEL-CCU","BLR-HYD","MAA-DEL","DEL-HYD","BOM-CCU"];
 const COLORS = ["#f43f5e","#f97316","#eab308","#10b981","#06b6d4"];
@@ -19,7 +20,7 @@ export default function BookingCurvePage() {
   return (
     <div>
       <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">Booking Curve Analysis</span>
+        <span className="gradient-text">Booking Curve Analysis <InfoTooltip text="The number of days between the ticket purchase and the actual flight departure (e.g. T+7 means bought 7 days before flight)." /></span>
       </h1>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
         How fares change with booking advance: T+1 (last minute) to T+45 (early bird)

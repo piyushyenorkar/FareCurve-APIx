@@ -1,4 +1,5 @@
 import { AlertTriangle, CheckCircle, Calendar } from "lucide-react";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 const MOCK = [
   {route:"DEL-BOM",window:"T+1",date:"2026-08-28",fare:12500,mean_fare:5500,z_score:3.8,pct:127,classification:"GENUINE_SURGE",source:"yatra",carrier:"6E",explanation:"Confirmed fare surge on DEL-BOM: 6E fares 127% above average, corroborated by 3 sources."},
@@ -21,7 +22,7 @@ export default function AnomaliesPage() {
         <span className="gradient-text">Anomaly Detection</span>
       </h1>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
-        Surge classification: Genuine (2+ source corroboration) vs Data Error vs Seasonal
+        Surge classification: Genuine <InfoTooltip text="A price spike verified by at least two independent sources." /> vs Seasonal <InfoTooltip text="A natural price increase due to holidays or weekends." /> vs Data Error <InfoTooltip text="An isolated spike from a single source, likely caused by a scraping glitch or caching error." />
       </p>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"1rem",marginBottom:"2rem"}}>
         {Object.entries(classColors).map(([k,v])=>{
@@ -37,7 +38,7 @@ export default function AnomaliesPage() {
       <div className="glass-card">
         <table className="data-table">
           <thead><tr>
-            <th>Route</th><th>Date</th><th>Window</th><th>Fare</th><th>Mean</th><th>Z-Score</th><th>Class</th><th>Source</th>
+            <th>Route</th><th>Date</th><th>Window</th><th>Fare</th><th>Mean</th><th>Z-Score <InfoTooltip text="A statistical measurement showing how many standard deviations a fare is from the average. >3 typically indicates a surge." /></th><th>Class</th><th>Source</th>
           </tr></thead>
           <tbody>
             {MOCK.map((a,i)=>{

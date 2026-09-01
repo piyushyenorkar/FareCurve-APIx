@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Plane } from "lucide-react";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 const ROUTES = [
   "DEL-BOM","DEL-BLR","BOM-BLR","DEL-CCU","BLR-HYD","MAA-DEL",
@@ -21,7 +22,7 @@ export default function RoutesPage() {
   return (
     <div>
       <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">Route Explorer</span>
+        <span className="gradient-text">Route Explorer <InfoTooltip text="Deep dive into specific origin-destination pairs to analyze carrier competition." /></span>
       </h1>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
         Per-route index values and fare trends across 22 domestic routes

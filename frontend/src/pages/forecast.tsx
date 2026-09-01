@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 const ROUTES = ["DEL-BOM","DEL-BLR","BOM-BLR","DEL-CCU","BLR-HYD","MAA-DEL"];
 
@@ -35,10 +36,10 @@ export default function ForecastPage() {
   return (
     <div>
       <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">Price Forecast & Buy/Wait Signal</span>
+        <span className="gradient-text">Price Forecast & Buy/Wait Signal <InfoTooltip text="Algorithmic recommendation on whether to purchase now or wait for a price drop." /></span>
       </h1>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
-        Holt-Winters exponential smoothing with 7-day horizon
+        Holt-Winters exponential smoothing <InfoTooltip text="A time-series forecasting algorithm that accounts for trends and seasonality." /> with 7-day horizon
       </p>
       <div style={{display:"flex",gap:"0.5rem",marginBottom:"2rem",flexWrap:"wrap"}}>
         {ROUTES.map(r=>(

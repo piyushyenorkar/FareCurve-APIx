@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { TrendingUp, PlaneTakeoff, ShieldCheck, Compass, Activity, Layers } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import Link from "next/link";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 export default function Home() {
   const [latest, setLatest] = useState<any>(null);
@@ -56,7 +57,7 @@ export default function Home() {
 
         <div className="sarvam-card p-8 flex flex-col justify-between">
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Data Confidence</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Data Confidence <InfoTooltip text="The percentage of data corroborated across multiple independent sources." /></h3>
             <p className="text-sm text-gray-600">
               High accuracy rating based on multi-source corroboration and direct integrations.
             </p>

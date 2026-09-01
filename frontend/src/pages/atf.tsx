@@ -1,4 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 const MOCK = Array.from({length:12},(_,i)=>({
   month: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i],
@@ -11,7 +12,7 @@ export default function ATFPage() {
   return (
     <div>
       <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">ATF & CPI Correlation</span>
+        <span className="gradient-text">ATF & CPI Correlation <InfoTooltip text="Aviation Turbine Fuel. It accounts for ~40% of airline operating costs and heavily influences base fares." /></span>
       </h1>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
         Aviation Turbine Fuel price impact on airfares &bull; CPI item 294 comparison

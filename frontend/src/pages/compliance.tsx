@@ -1,4 +1,5 @@
 import { ShieldCheck, ShieldX, ExternalLink } from "lucide-react";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 const SOURCES = [
   {slug:"akasa",name:"Akasa Air",type:"carrier",url:"akasaair.com",verdict:"ALLOW",rule:"No Disallow",gated:false},
@@ -32,7 +33,7 @@ export default function CompliancePage() {
         </div>
         <div className="glass-card" style={{textAlign:"center"}}>
           <div style={{fontSize:"2.5rem",fontWeight:800,color:"var(--accent-rose)"}}>{denied}</div>
-          <div style={{fontSize:"0.8rem",color:"var(--text-muted)"}}>Gated Sources (robots.txt DENY)</div>
+          <div style={{fontSize:"0.8rem",color:"var(--text-muted)"}}>Gated Sources (robots.txt DENY) <InfoTooltip text="Websites that explicitly disallow automated scraping. We use mathematical reconstruction here instead of scraping." /></div>
         </div>
         <div className="glass-card" style={{textAlign:"center"}}>
           <div style={{fontSize:"2.5rem",fontWeight:800,color:"var(--accent-blue)"}}>11</div>

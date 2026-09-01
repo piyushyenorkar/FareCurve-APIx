@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Legend } from "recharts";
+import { InfoTooltip } from "../components/InfoTooltip";
 
 const CARRIERS = [
   {carrier:"6E",name:"IndiGo",base:3800,taxes:720,fees:250,color:"#3b82f6"},
@@ -12,7 +13,7 @@ export default function FaresPage() {
   return (
     <div>
       <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">Fare Transparency</span>
+        <span className="gradient-text">Fare Transparency <InfoTooltip text="Airlines dynamically price the Base Fare while Taxes and Convenience Fees remain largely static." /></span>
       </h1>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
         Base fare vs taxes vs convenience fees per carrier ? full price breakdown
