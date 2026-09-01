@@ -1,0 +1,27 @@
+# DGCA Tariff Monitoring Unit — average airfare on monitored routes.
+#
+# WHY THIS FILE EXISTS AND IS MOSTLY EMPTY
+# ----------------------------------------
+# The PS asks for ">= 30 days of back-tested results against publicly available DGCA
+# monthly average-fare data". DGCA's Tariff Monitoring Unit does publish such figures,
+# but only through monthly reports, press notes and Parliament replies as PDFs/tabled
+# answers. There is no API and no CSV. So this file is the seam: a human extracts the
+# published table once a month, records it here WITH ITS CITATION, and the backtest
+# picks it up with no code change.
+#
+# RULES
+#   * provenance=PUBLISHED         -> a real figure from a real DGCA/PIB publication.
+#                                     Only these are used as a validation benchmark.
+#   * provenance=ANALYST_CALIBRATION -> anything else. NEVER used as a benchmark;
+#                                     available to the reconstruction model only, and
+#                                     labelled as such wherever it surfaces.
+#   * source_citation is mandatory and must identify the document, not just the body.
+#
+# If this file contains no PUBLISHED rows, `apix backtest run` reports
+# "dgca_tmu_route_average_fare: benchmark not loaded" and validates against
+# CPI item 294 instead — which is a real, live, API-served official series and is
+# in fact the series APIx exists to augment. Add rows here to widen the validation;
+# do not add rows you cannot cite.
+#
+# Populate with:  apix reference import-dgca --help
+month,route_key,booking_window_days,average_fare_inr,provenance,source_citation,source_url
