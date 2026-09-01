@@ -1,0 +1,12 @@
+# City-pair (O&D) annual passengers — the PREFERRED weight basis.
+#
+# DGCA does not publish city-pair passenger volumes as a routine open feed. When a
+# figure IS published (Parliament reply, DGCA annual review, a specific press note),
+# add it here with provenance=PUBLISHED and the index automatically switches that
+# route from the gravity estimate to the real number.
+#
+# Rows present here with provenance=PUBLISHED take precedence over the gravity model
+# in apix/reference/weights.py. Rows with any other provenance are ignored for weight
+# derivation — the gravity estimate from airport_passengers.csv is used instead,
+# because a transparent model beats an uncitable number.
+route_key,origin,destination,reference_period,annual_passengers,provenance,source_citation,source_url
