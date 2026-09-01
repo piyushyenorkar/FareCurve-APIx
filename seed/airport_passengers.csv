@@ -1,0 +1,36 @@
+# Airport-wise DOMESTIC passenger throughput — input to index weight derivation.
+#
+# PROVENANCE DISCIPLINE
+#   PUBLISHED           = transcribed from a specific AAI/DGCA annexure. Cite the file.
+#   ANALYST_CALIBRATION = order-of-magnitude figures used so the weighting METHOD can be
+#                         demonstrated and tested end-to-end before a fresh annexure is
+#                         transcribed. Marked as such everywhere it surfaces: the API
+#                         returns weight_basis and vintage, and the dashboard shows both.
+#
+# TO UPGRADE TO PUBLISHED (5 minutes, once a month):
+#   1. AAI publishes "Traffic News" monthly at
+#      https://www.aai.aero/en/business-opportunities/aai-traffic-news
+#      Annexure III carries airport-wise domestic passengers.
+#   2. Transcribe the annexure rows for the airports below.
+#   3. Set provenance=PUBLISHED, source_citation to the annexure name, source_url to
+#      the exact PDF/XLS URL, reference_period to e.g. FY2025-26.
+#   4. Run: apix weights rebuild --vintage aai-<month>-<year> --activate
+#      A new weight vintage is inserted; the old one is retained forever, so every
+#      previously published index number stays reproducible.
+iata,reference_period,domestic_passengers,provenance,source_citation,source_url
+DEL,FY2024-25,55000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Indira Gandhi International, pending transcription of AAI Traffic News Annexure III.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+BOM,FY2024-25,37000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Chhatrapati Shivaji Maharaj International, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+BLR,FY2024-25,33000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Kempegowda International, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+HYD,FY2024-25,21000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Rajiv Gandhi International, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+CCU,FY2024-25,19000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for NSCBI Kolkata, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+MAA,FY2024-25,17000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Chennai International, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+AMD,FY2024-25,10000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Sardar Vallabhbhai Patel International, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+PNQ,FY2024-25,8000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Pune, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+GOI,FY2024-25,8000000,ANALYST_CALIBRATION,"Order-of-magnitude combined Goa domestic throughput (Dabolim + Mopa), pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+GAU,FY2024-25,5500000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Guwahati, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+LKO,FY2024-25,5500000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Lucknow, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+COK,FY2024-25,5000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Cochin International, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+JAI,FY2024-25,5000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Jaipur, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+PAT,FY2024-25,4500000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Patna, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+IXC,FY2024-25,3000000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Chandigarh, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
+SXR,FY2024-25,2800000,ANALYST_CALIBRATION,"Order-of-magnitude domestic throughput for Srinagar, pending AAI annexure transcription.",https://www.aai.aero/en/business-opportunities/aai-traffic-news
