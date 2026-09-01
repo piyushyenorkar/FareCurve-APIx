@@ -24,7 +24,7 @@ export default function FaresPage() {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)"/>
             <XAxis dataKey="name" tick={{fill:"#94a3b8",fontSize:12}}/>
             <YAxis tick={{fill:"#64748b",fontSize:11}} tickFormatter={v=>"₹"+v}/>
-            <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", color: "#0f172a", padding: "12px" }} itemStyle={{ color: "#334155", fontSize: "13px", fontWeight: 500, padding: "2px 0" }} labelStyle={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }} formatter={(v:number,n:string)=>["₹"+v.toLocaleString(),n]}/>
+            <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", color: "#0f172a", padding: "12px" }} itemStyle={{ color: "#334155", fontSize: "13px", fontWeight: 500, padding: "2px 0" }} labelStyle={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }} formatter={(v:any,n:any)=>["₹"+v.toLocaleString(),n]}/>
             <Legend/>
             <Bar dataKey="base" stackId="a" fill="#3b82f6" name="Base Fare" radius={[0,0,0,0]}/>
             <Bar dataKey="taxes" stackId="a" fill="#f59e0b" name="Taxes & Charges"/>

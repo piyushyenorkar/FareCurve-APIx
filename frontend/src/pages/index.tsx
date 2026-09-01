@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api } from "../lib/api";
 import { TrendingUp, PlaneTakeoff, ShieldCheck, Compass, Activity, Layers } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import Link from "next/link";
@@ -9,11 +9,11 @@ export default function Home() {
   const [history, setHistory] = useState<any[]>([]);
 
   useEffect(() => {
-    api.indexLatest().then((d) => {
+    api.indexLatest().then((d: any) => {
       if (d && d.value) setLatest(d);
     }).catch(() => {});
     
-    api.indexOverall(30).then((d) => {
+    api.indexOverall(30).then((d: any) => {
       if (d) setHistory(d.reverse()); // Reverse to chronological
     }).catch(() => {});
   }, []);

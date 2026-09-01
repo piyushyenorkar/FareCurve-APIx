@@ -50,7 +50,7 @@ export default function AnomaliesPage() {
                   <td style={{color:"var(--accent-rose)",fontWeight:700}}>₹{a.fare.toLocaleString()}</td>
                   <td>₹{a.mean_fare.toLocaleString()}</td>
                   <td style={{fontWeight:700}}>{a.z_score.toFixed(1)}σ</td>
-                  <td><span className="badge" style={{background:cc.bg,color:cc.text}}>{cc.label}</span></td>
+                  <td><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold" style={{background:cc.bg,color:cc.text}}>{cc.label}</span></td>
                   <td>{a.source}</td>
                 </tr>
               );
