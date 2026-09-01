@@ -50,7 +50,7 @@ export default function CompliancePage() {
                 <td style={{fontWeight:700}}>{s.name}</td>
                 <td><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold" style={{background:"rgba(59,130,246,0.12)",color:"#60a5fa"}}>{s.type.toUpperCase()}</span></td>
                 <td style={{color:"var(--accent-cyan)"}}>{s.url}</td>
-                <td><span className={"badge px-2.5 py-1 rounded-full text-xs font-semibold " + (s.verdict === "ALLOW" ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600")}>
+                <td><span className={"inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold " + (s.verdict === "ALLOW" ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600")}>
                   {s.verdict==="ALLOW"?<ShieldCheck size={12} style={{marginRight:4}}/>:<ShieldX size={12} style={{marginRight:4}}/>}
                   {s.verdict}
                 </span></td>
