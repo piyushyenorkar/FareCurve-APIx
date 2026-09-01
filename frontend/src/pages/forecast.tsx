@@ -24,7 +24,7 @@ const mockForecast = (route: string) => {
 export default function ForecastPage() {
   const [route, setRoute] = useState("DEL-BOM");
   const {hist, forecast, signal, current} = mockForecast(route);
-  const combined = [...hist.map(h=>({...h, predicted: null})), ...forecast.map(f=>({...f, actual: null}))];
+  const combined = [...hist.map((h, i)=>({...h, predicted: i === hist.length - 1 ? h.actual : null})), ...forecast.map(f=>({...f, actual: null}))];
   const signalColors: Record<string,{bg:string,text:string,icon:any}> = {
     BUY_NOW: {bg:"rgba(244,63,94,0.15)",text:"#fb7185",icon:TrendingUp},
     WAIT: {bg:"rgba(16,185,129,0.15)",text:"#34d399",icon:TrendingDown},
@@ -59,7 +59,7 @@ export default function ForecastPage() {
               <XAxis dataKey="date" tick={{fill:"#64748b",fontSize:11}} tickFormatter={v=>v?.slice(5)||""}/>
               <YAxis tick={{fill:"#64748b",fontSize:11}} tickFormatter={v=>"₹"+v}/>
               <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", color: "#0f172a", padding: "12px" }} itemStyle={{ color: "#334155", fontSize: "13px", fontWeight: 500, padding: "2px 0" }} labelStyle={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }} />
-              <ReferenceLine x={hist[hist.length-1].date} stroke="rgba(255,255,255,0.2)" strokeDasharray="5 5" label={{value:"Today",fill:"#64748b",fontSize:11}}/>
+              <ReferenceLine x={hist[hist.length-1].date} stroke="#94a3b8" strokeDasharray="5 5" label={{value:"Today",fill:"#64748b",fontSize:11}}/>
               <Line type="monotone" dataKey="actual" stroke="#3b82f6" strokeWidth={2.5} dot={false} name="Actual"/>
               <Line type="monotone" dataKey="predicted" stroke="#f59e0b" strokeWidth={2.5} strokeDasharray="8 4" dot={false} name="Predicted"/>
             </LineChart>
