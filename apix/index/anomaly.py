@@ -54,7 +54,7 @@ def detect_anomalies(
                 and_(
                     CleanedFare.total_fare.isnot(None),
                     CleanedFare.is_outlier == False,
-                    CleanedFare.travel_date >= start.isoformat(),
+                    CleanedFare.travel_date >= start,
                 )
             )
         ).all()

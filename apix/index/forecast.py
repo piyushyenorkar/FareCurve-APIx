@@ -33,8 +33,8 @@ def _get_route_history(origin: str, destination: str, window: int = 15, days: in
                     CleanedFare.booking_window_days == window,
                     CleanedFare.total_fare.isnot(None),
                     CleanedFare.is_outlier == False,
-                    CleanedFare.travel_date >= start.isoformat(),
-                    CleanedFare.travel_date <= end.isoformat(),
+                    CleanedFare.travel_date >= start,
+                    CleanedFare.travel_date <= end,
                 )
             )
         ).all()
@@ -97,9 +97,15 @@ def forecast_route(
                 "predicted_fare": round(float(val), 0),
             })
 
+        
+        hist_data = []
+        for d, v in history.items():
+            hist_data.append({"date": d.strftime("%Y-%m-%d"), "actual": round(float(v), 0)})
+        result["history"] = hist_data[-14:]
+        
         result["method"] = "holt_winters"
         result["forecast"] = forecasts
-        result["current_avg"] = round(float(history.iloc[-3:].mean()), 0)
+        result["current_avg"] = round(float(history.iloc[-1]), 0)
 
         # Buy or Wait signal
         if forecasts:
@@ -107,10 +113,10 @@ def forecast_route(
             current = result["current_avg"]
             pct_change = (future_avg - current) / current * 100 if current else 0
 
-            if pct_change > 3:
+            if pct_change > 0.5:
                 result["buy_or_wait"] = "BUY_NOW"
                 result["signal_reason"] = f"Prices expected to rise {pct_change:.1f}% in next 3 days"
-            elif pct_change < -3:
+            elif pct_change < -0.5:
                 result["buy_or_wait"] = "WAIT"
                 result["signal_reason"] = f"Prices expected to drop {abs(pct_change):.1f}% in next 3 days"
             else:
@@ -123,6 +129,12 @@ def forecast_route(
         ma = history.rolling(7).mean().dropna()
         if len(ma) > 0:
             last_val = float(ma.iloc[-1])
+            
+            hist_data = []
+            for d, v in history.items():
+                hist_data.append({"date": d.strftime("%Y-%m-%d"), "actual": round(float(v), 0)})
+            result["history"] = hist_data[-14:]
+            
             result["method"] = "moving_average"
             result["forecast"] = [
                 {"date": (date.today() + timedelta(days=i+1)).isoformat(),
