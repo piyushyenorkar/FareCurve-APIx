@@ -39,7 +39,7 @@ export default function Home() {
         <div className="glass-panel p-8 col-span-2 relative overflow-hidden flex flex-col justify-center">
           <div className="absolute right-0 top-0 w-64 h-64 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-full blur-3xl -mr-20 -mt-20 z-0"></div>
           <div className="relative z-10">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-2">Current APIx Index</h2>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-2">Current APIx Index <InfoTooltip text="Airfare Price Index computed as a weighted average of observed prices." /></h2>
             <div className="flex items-baseline gap-4">
               <span className="text-6xl font-bold tracking-tighter text-black">
                 {latest ? latest.value.toFixed(2) : "123.39"}
@@ -57,7 +57,7 @@ export default function Home() {
 
         <div className="sarvam-card p-8 flex flex-col justify-between">
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Data Confidence <InfoTooltip text="The percentage of data corroborated across multiple independent sources." /></h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">Data Confidence <InfoTooltip text="The percentage of data corroborated across multiple independent sources." /> <InfoTooltip text="The percentage of data corroborated across multiple independent sources." /></h3>
             <p className="text-sm text-gray-600">
               High accuracy rating based on multi-source corroboration and direct integrations.
             </p>
