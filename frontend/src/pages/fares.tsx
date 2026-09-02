@@ -6,6 +6,17 @@ import { InfoTooltip } from "../components/InfoTooltip";
 
 const ROUTES = ["DEL-BOM","DEL-BLR","BOM-BLR","DEL-CCU","BLR-HYD","MAA-DEL","DEL-HYD","BOM-CCU"];
 
+const CARRIER_MAP: Record<string, string> = {
+  "6E": "IndiGo",
+  "UK": "Vistara",
+  "AI": "Air India",
+  "IX": "AI Express",
+  "SG": "SpiceJet",
+  "QP": "Akasa Air",
+  "I5": "AIX Connect",
+  "XX": "Vistara"
+};
+
 export default function FaresPage() {
   const [route, setRoute] = useState("DEL-BOM");
   const [carriers, setCarriers] = useState<any[]>([]);
@@ -61,7 +72,7 @@ export default function FaresPage() {
           <ResponsiveContainer width="100%" height={350}>
             <BarChart data={carriers} barSize={50}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
-              <XAxis dataKey="carrier" tick={{fill:"#64748b",fontSize:12}}/>
+              <XAxis dataKey="carrier" tick={{fill:"#64748b",fontSize:12}} tickFormatter={(val) => CARRIER_MAP[val] ? `${CARRIER_MAP[val]} (${val})` : val}/>
               <YAxis tick={{fill:"#64748b",fontSize:11}} tickFormatter={v=>"₹"+v}/>
               <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v:any,n:any)=>["₹"+Number(v).toLocaleString(),n]}/>
               <Legend/>

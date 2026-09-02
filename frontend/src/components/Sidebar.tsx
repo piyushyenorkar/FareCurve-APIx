@@ -22,10 +22,10 @@ export default function Sidebar() {
     <aside className="w-64 h-screen fixed left-0 top-0 bg-[#fafafa] border-r border-[#f1f5f9] flex flex-col py-6 px-4 z-50">
       <div className="flex items-center gap-3 mb-10 px-2 cursor-pointer">
         <div className="w-9 h-9 rounded-xl bg-white shadow-sm border border-gray-100 flex items-center justify-center overflow-hidden">
-          <img src="/logo.png" alt="AeroMetrics Logo" className="w-full h-full object-contain scale-[1.3]" />
+          <img src="/logo.png" alt="SkyIndex Logo" className="w-full h-full object-contain scale-[1.3]" />
         </div>
         <div>
-          <h1 className="font-bold text-sm tracking-tight text-gray-900">AeroMetrics</h1>
+          <h1 className="font-bold text-sm tracking-tight text-gray-900">SkyIndex</h1>
           <p className="text-xs text-indigo-500 font-medium">SIH-26056 Workspace</p>
         </div>
       </div>
