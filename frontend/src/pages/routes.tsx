@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Plane } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
 
 const ROUTES = ["DEL-BOM","DEL-BLR","BOM-BLR","DEL-CCU","BLR-HYD","MAA-DEL","DEL-HYD","BOM-CCU","DEL-PNQ","DEL-AMD","BOM-GOI","DEL-GOI","DEL-LKO","DEL-SXR","DEL-JAI","DEL-MAA"];
@@ -37,14 +38,21 @@ export default function RoutesPage() {
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
         Track individual route indices — live from the database
       </p>
+            <div style={{display:"flex",flexWrap:"wrap",gap:"0.5rem",marginBottom:"2rem"}}>
+        {ROUTES.map(r=>(
+          <button key={r} onClick={()=>setSelected(r)} style={{
+            padding:"0.5rem 1rem",borderRadius:999,fontSize:"0.8rem",fontWeight:600,
+            background: r===selected ? "linear-gradient(135deg,#3b82f6,#06b6d4)" : "rgba(255,255,255,0.04)",
+            border: r===selected ? "none" : "1px solid rgba(255,255,255,0.08)",
+            color: r===selected ? "#fff" : "var(--text-secondary)",
+            cursor:"pointer",transition:"all 0.2s",
+          }}>
+            <Plane size={12} style={{display:"inline",marginRight:4}} />{r}
+          </button>
+        ))}
+      </div>
       <div className="glass-card" style={{marginBottom:"1.5rem"}}>
-        <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap",marginBottom:"1.5rem"}}>
-          {ROUTES.map(r=>(
-            <button key={r} onClick={()=>setSelected(r)} className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${selected===r ? "bg-black text-white shadow-md" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
-              {r}
-            </button>
-          ))}
-        </div>
+
         {latest && (
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"1rem",marginBottom:"2rem"}}>
             <div className="glass-card" style={{textAlign:"center"}}>
