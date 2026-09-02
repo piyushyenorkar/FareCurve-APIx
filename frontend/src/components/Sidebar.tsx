@@ -27,21 +27,45 @@ export default function Sidebar() {
           <p className="text-xs text-gray-500">SIH-26056 Workspace</p>
         </div>
       </div>
-      <nav className="flex-1 space-y-1">
-        {links.map((link) => {
-          const isActive = router.pathname === link.href;
-          const activeClass = isActive 
-            ? "bg-white font-medium text-black shadow-sm border border-gray-100" 
-            : "text-gray-600 hover:bg-gray-50 hover:text-black border border-transparent";
-          return (
-            <Link key={link.href} href={link.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-full text-sm transition-all ${activeClass}`}>
-              <link.icon size={16} strokeWidth={isActive ? 2.5 : 2} />
-              {link.label}
-            </Link>
-          );
-        })}
+      {/* New Split Structure Navigation */}
+      <nav className="flex gap-3 relative">
+        {/* Continuous background rail for icons */}
+        <div className="absolute left-0 top-0 bottom-0 w-10 bg-gray-100/50 rounded-full z-0"></div>
+        
+        {/* Icons Column */}
+        <div className="flex flex-col w-10 z-10 relative">
+          {links.map((link) => {
+            const isActive = router.pathname === link.href;
+            return (
+              <Link 
+                key={`icon-${link.href}`} 
+                href={link.href} 
+                className={`h-10 w-10 flex items-center justify-center rounded-full mb-1.5 transition-all ${isActive ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'}`}
+                title={link.label}
+              >
+                <link.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Text Column */}
+        <div className="flex flex-col flex-1 z-10">
+          {links.map((link) => {
+            const isActive = router.pathname === link.href;
+            return (
+              <Link 
+                key={`text-${link.href}`} 
+                href={link.href} 
+                className={`h-10 flex items-center px-4 rounded-full mb-1.5 text-sm transition-all ${isActive ? 'bg-white font-medium text-black shadow-sm border border-gray-100' : 'text-gray-600 hover:bg-gray-50 border border-transparent hover:text-black'}`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
       </nav>
-      <div className="sarvam-card p-4 mt-auto">
+      <div className="sarvam-card p-4 mt-4">
         <h4 className="text-sm font-semibold mb-1">Pipeline Status</h4>
         <p className="text-xs text-gray-600 mb-4">Real-time scraping is active.</p>
         <button className="w-full py-2.5 bg-black text-white rounded-full text-xs font-semibold shadow-md hover:bg-gray-800 transition-colors">
