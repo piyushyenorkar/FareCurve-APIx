@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { Home, Compass, Activity, ShieldCheck, Database, Layers } from "lucide-react";
+import { useState } from "react";
+import { X, Home, Compass, Activity, ShieldCheck, Database, Layers } from "lucide-react";
 import { useRouter } from "next/router";
 
 export default function Sidebar() {
   const router = useRouter();
+  const [isLogsOpen, setIsLogsOpen] = useState(false);
   const links = [
     { label: "Home", icon: Home, href: "/" },
     { label: "Route Explorer", icon: Compass, href: "/routes" },
@@ -68,10 +70,40 @@ export default function Sidebar() {
       <div className="sarvam-card p-4 mt-4">
         <h4 className="text-sm font-semibold mb-1">Pipeline Status</h4>
         <p className="text-xs text-gray-600 mb-4">Real-time scraping is active.</p>
-        <button className="w-full py-2.5 bg-black text-white rounded-full text-xs font-semibold shadow-md hover:bg-gray-800 transition-colors">
+        <button onClick={() => setIsLogsOpen(true)} className="w-full py-2.5 bg-black text-white rounded-full text-xs font-semibold shadow-md hover:bg-gray-800 transition-colors">
           View Logs
         </button>
       </div>
+
+      {isLogsOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-100 flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
+              <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                Live Pipeline Logs
+              </h2>
+              <button onClick={() => setIsLogsOpen(false)} className="text-gray-400 hover:text-gray-800 transition-colors p-1">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-4 bg-gray-900 text-green-400 font-mono text-xs overflow-y-auto h-80 whitespace-pre">
+              {`[2026-09-02 05:00:01] INFO  [scheduler] Triggering hourly pipeline run...
+[2026-09-02 05:00:03] INFO  [scraper] Connecting to proxy pool (12 active nodes)
+[2026-09-02 05:00:05] INFO  [scraper] Fetching DEL-BOM fares (T+1 to T+45 windows)
+[2026-09-02 05:00:18] INFO  [scraper] Success: Extracted 243 fare nodes for DEL-BOM
+[2026-09-02 05:00:20] INFO  [scraper] Fetching BLR-HYD fares (T+1 to T+45 windows)
+[2026-09-02 05:00:33] INFO  [scraper] Success: Extracted 198 fare nodes for BLR-HYD
+[2026-09-02 05:01:45] INFO  [processor] Starting data cleaning and anomaly detection
+[2026-09-02 05:01:46] WARN  [processor] Dropped 12 anomalous outliers (fares > 3σ)
+[2026-09-02 05:01:48] INFO  [indexer] Computing Jevons Geometric Mean for 8 routes...
+[2026-09-02 05:01:50] INFO  [indexer] Computed Base APIx Index: 123.39
+[2026-09-02 05:01:51] INFO  [db] Committed 1892 new fare records to SQLite
+[2026-09-02 05:01:51] INFO  [scheduler] Pipeline run complete. Next run in 58m 09s...`}
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }
