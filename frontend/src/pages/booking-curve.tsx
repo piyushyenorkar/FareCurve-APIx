@@ -1,63 +1,80 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "../lib/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 import { InfoTooltip } from "../components/InfoTooltip";
 
 const ROUTES = ["DEL-BOM","DEL-BLR","BOM-BLR","DEL-CCU","BLR-HYD","MAA-DEL","DEL-HYD","BOM-CCU"];
 const COLORS = ["#f43f5e","#f97316","#eab308","#10b981","#06b6d4"];
-
-const mockCurve = (base: number) => [
-  {window:"T+1",days:1,avg_fare:Math.round(base*2.2),label:"Last minute"},
-  {window:"T+7",days:7,avg_fare:Math.round(base*1.5),label:"1 week"},
-  {window:"T+15",days:15,avg_fare:Math.round(base),label:"2 weeks"},
-  {window:"T+30",days:30,avg_fare:Math.round(base*0.85),label:"1 month"},
-  {window:"T+45",days:45,avg_fare:Math.round(base*0.75),label:"45 days"},
-];
+const LABELS: Record<string,string> = {"T+1":"Last minute","T+7":"1 week","T+15":"2 weeks","T+30":"1 month","T+45":"45 days"};
 
 export default function BookingCurvePage() {
   const [route, setRoute] = useState("DEL-BOM");
-  const base = 5500 + ROUTES.indexOf(route)*200;
-  const curve = mockCurve(base);
+  const [curve, setCurve] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState("");
+
+  useEffect(() => {
+    setLoading(true);
+    const [origin, dest] = route.split("-");
+    api.bookingCurve(origin, dest).then((data: any) => {
+      if (data && data.curve) {
+        setCurve(data.curve.map((c: any) => ({
+          ...c,
+          label: LABELS[c.window] || c.window,
+        })));
+        setPeriod(data.period || "");
+      }
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [route]);
+
   return (
     <div>
       <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">Booking Curve Analysis <InfoTooltip text="The number of days between the ticket purchase and the actual flight departure (e.g. T+7 means bought 7 days before flight)." /></span>
+        <span className="gradient-text">Booking Curve Analysis <InfoTooltip text="Compares average fares at different booking windows (days before travel). T+1 = last-minute, T+45 = 45 days ahead. Data from the live pipeline." /></span>
       </h1>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
-        How fares change with booking advance: T+1 (last minute) to T+45 (early bird)
+        How fares change based on when you book — live data from the pipeline
       </p>
-      <div style={{display:"flex",gap:"0.5rem",marginBottom:"2rem",flexWrap:"wrap"}}>
-        {ROUTES.map(r=>(
-          <button key={r} onClick={()=>setRoute(r)} style={{
-            padding:"0.5rem 1rem",borderRadius:999,fontSize:"0.8rem",fontWeight:600,
-            background:r===route?"linear-gradient(135deg,#3b82f6,#06b6d4)":"rgba(255,255,255,0.04)",
-            border:r===route?"none":"1px solid rgba(255,255,255,0.08)",
-            color:r===route?"#fff":"var(--text-secondary)",cursor:"pointer",
-          }}>{r}</button>
-        ))}
-      </div>
       <div className="glass-card" style={{marginBottom:"1.5rem"}}>
+        <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap",marginBottom:"1.5rem"}}>
+          {ROUTES.map(r=>(
+            <button key={r} onClick={()=>setRoute(r)} className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${route===r ? "bg-black text-white shadow-md" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+              {r}
+            </button>
+          ))}
+        </div>
+        {period && <p style={{fontSize:"0.75rem",color:"var(--text-muted)",marginBottom:"1rem"}}>Period: {period}</p>}
         <h2 style={{fontSize:"1.1rem",fontWeight:700,marginBottom:"1rem"}}>{route} Fare by Booking Window</h2>
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={curve} barSize={60}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)"/>
-            <XAxis dataKey="window" tick={{fill:"#94a3b8",fontSize:13,fontWeight:600}}/>
-            <YAxis tick={{fill:"#64748b",fontSize:11}} tickFormatter={v=>"₹"+v.toLocaleString()}/>
-            <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", color: "#0f172a", padding: "12px" }} itemStyle={{ color: "#334155", fontSize: "13px", fontWeight: 500, padding: "2px 0" }} labelStyle={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }} formatter={(v:any)=>["₹"+v.toLocaleString(),"Avg Fare"]}/>
-            <Bar dataKey="avg_fare" radius={[8,8,0,0]}>
-              {curve.map((_,i)=><Cell key={i} fill={COLORS[i]}/>)}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        {loading ? (
+          <div style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>Loading live data...</div>
+        ) : curve.length === 0 ? (
+          <div style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>No data available for this route yet. Run the pipeline first.</div>
+        ) : (
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={curve} barSize={60}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
+              <XAxis dataKey="window" tick={{fill:"#64748b",fontSize:12}}/>
+              <YAxis tick={{fill:"#64748b",fontSize:11}} tickFormatter={v=>"₹"+v.toLocaleString()}/>
+              <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", color: "#0f172a", padding: "12px" }} formatter={(v:any,n:any)=>["₹"+Number(v).toLocaleString(),n]}/>
+              <Bar dataKey="avg_fare" name="Avg Fare" radius={[8,8,0,0]}>
+                {curve.map((_,i) => <Cell key={i} fill={COLORS[i % COLORS.length]}/>)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:"1rem"}}>
-        {curve.map((c,i)=>(
-          <div key={c.window} className="glass-card" style={{textAlign:"center"}}>
-            <div style={{fontSize:"0.7rem",color:"var(--text-muted)",textTransform:"uppercase",fontWeight:600}}>{c.label}</div>
-            <div style={{fontSize:"1.75rem",fontWeight:800,color:COLORS[i],margin:"0.5rem 0"}}>₹{c.avg_fare.toLocaleString()}</div>
-            <div style={{fontSize:"0.75rem",color:"var(--text-secondary)"}}>{c.window}</div>
-          </div>
-        ))}
-      </div>
+      {curve.length > 0 && (
+        <div style={{display:"grid",gridTemplateColumns:`repeat(${curve.length},1fr)`,gap:"1rem"}}>
+          {curve.map((c,i)=>(
+            <div key={c.window} className="glass-card" style={{textAlign:"center"}}>
+              <div style={{fontSize:"0.7rem",fontWeight:700,textTransform:"uppercase",color:"var(--text-muted)",marginBottom:"0.5rem"}}>{c.label || c.window}</div>
+              <div style={{fontSize:"1.5rem",fontWeight:900,color:COLORS[i % COLORS.length]}}>₹{Number(c.avg_fare).toLocaleString()}</div>
+              <div style={{fontSize:"0.7rem",color:"var(--text-muted)",marginTop:"0.25rem"}}>{c.window} • {c.observations || 0} obs</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

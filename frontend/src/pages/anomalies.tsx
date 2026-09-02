@@ -1,64 +1,79 @@
-import { AlertTriangle, CheckCircle, Calendar } from "lucide-react";
+import { useState, useEffect } from "react";
+import { api } from "../lib/api";
 import { InfoTooltip } from "../components/InfoTooltip";
 
-const MOCK = [
-  {route:"DEL-BOM",window:"T+1",date:"2026-08-28",fare:12500,mean_fare:5500,z_score:3.8,pct:127,classification:"GENUINE_SURGE",source:"yatra",carrier:"6E",explanation:"Confirmed fare surge on DEL-BOM: 6E fares 127% above average, corroborated by 3 sources."},
-  {route:"BLR-HYD",window:"T+7",date:"2026-08-30",fare:8200,mean_fare:3200,z_score:4.1,pct:156,classification:"SEASONAL_SPIKE",source:"akasa",carrier:"QP",explanation:"Seasonal fare increase during Ganesh Chaturthi travel period."},
-  {route:"DEL-CCU",window:"T+15",date:"2026-08-25",fare:14000,mean_fare:5800,z_score:3.2,pct:141,classification:"DATA_ERROR",source:"spicejet",carrier:"SG",explanation:"Single source anomaly, not confirmed by others. Flagged for review."},
-  {route:"BOM-GOI",window:"T+1",date:"2026-08-31",fare:9500,mean_fare:3500,z_score:5.1,pct:171,classification:"GENUINE_SURGE",source:"yatra",carrier:"AI",explanation:"Weekend surge on leisure route, corroborated by 4 sources."},
-  {route:"DEL-SXR",window:"T+7",date:"2026-08-29",fare:11000,mean_fare:4200,z_score:4.5,pct:162,classification:"SEASONAL_SPIKE",source:"airindia",carrier:"AI",explanation:"Peak tourism season fare increase for Kashmir route."},
-];
-
-const classColors: Record<string,{bg:string,text:string,label:string}> = {
-  GENUINE_SURGE: {bg:"rgba(244,63,94,0.12)",text:"#fb7185",label:"Genuine Surge"},
-  SEASONAL_SPIKE: {bg:"rgba(245,158,11,0.12)",text:"#fbbf24",label:"Seasonal"},
-  DATA_ERROR: {bg:"rgba(139,92,246,0.12)",text:"#a78bfa",label:"Data Error"},
+const CLASS_COLORS: Record<string,string> = {
+  "GENUINE_SURGE": "#f43f5e",
+  "DATA_ERROR": "#f97316",
+  "SEASONAL_SPIKE": "#eab308",
+};
+const CLASS_LABELS: Record<string,string> = {
+  "GENUINE_SURGE": "Genuine Surge",
+  "DATA_ERROR": "Data Error",
+  "SEASONAL_SPIKE": "Seasonal Spike",
 };
 
 export default function AnomaliesPage() {
+  const [anomalies, setAnomalies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.anomalies(100).then((data: any) => {
+      if (Array.isArray(data)) setAnomalies(data);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  const counts: Record<string,number> = {};
+  for (const a of anomalies) {
+    counts[a.classification] = (counts[a.classification] || 0) + 1;
+  }
+
   return (
     <div>
       <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">Anomaly Detection</span>
+        <span className="gradient-text">Anomaly Detection <InfoTooltip text="Z-score based outlier detection (threshold: 2.5σ). Anomalies are classified as Genuine Surge (multi-source corroboration), Data Error (single source), or Seasonal Spike (festival window)." /></span>
       </h1>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
-        Surge classification: Genuine <InfoTooltip text="A price spike verified by at least two independent sources." /> vs Seasonal <InfoTooltip text="A natural price increase due to holidays or weekends." /> vs Data Error <InfoTooltip text="An isolated spike from a single source, likely caused by a scraping glitch or caching error." />
+        Automated fare spike detection with cross-source corroboration — live from the pipeline
       </p>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"1rem",marginBottom:"2rem"}}>
-        {Object.entries(classColors).map(([k,v])=>{
-          const count = MOCK.filter(m=>m.classification===k).length;
-          return (
-            <div key={k} className="glass-card" style={{textAlign:"center"}}>
-              <div style={{fontSize:"2rem",fontWeight:800,color:v.text}}>{count}</div>
-              <div style={{fontSize:"0.8rem",color:"var(--text-muted)"}}>{v.label}</div>
-            </div>
-          );
-        })}
+        {Object.entries(CLASS_LABELS).map(([key,label])=>(
+          <div key={key} className="glass-card" style={{textAlign:"center"}}>
+            <div style={{fontSize:"2.5rem",fontWeight:800,color:CLASS_COLORS[key]}}>{counts[key] || 0}</div>
+            <div style={{fontSize:"0.8rem",color:"var(--text-muted)"}}>{label}</div>
+          </div>
+        ))}
       </div>
-      <div className="glass-card">
-        <table className="data-table">
-          <thead><tr>
-            <th>Route</th><th>Date</th><th>Window</th><th>Fare</th><th>Mean</th><th>Z-Score <InfoTooltip text="A statistical measurement showing how many standard deviations a fare is from the average. >3 typically indicates a surge." /></th><th>Class</th><th>Source</th>
-          </tr></thead>
-          <tbody>
-            {MOCK.map((a,i)=>{
-              const cc = classColors[a.classification] || classColors.DATA_ERROR;
-              return (
+      {loading ? (
+        <div className="glass-card" style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>Loading anomalies...</div>
+      ) : anomalies.length === 0 ? (
+        <div className="glass-card" style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>
+          No anomalies detected in the current data window. This means fare data is clean and consistent across sources.
+        </div>
+      ) : (
+        <div className="glass-card">
+          <table className="data-table">
+            <thead><tr>
+              <th>Route</th><th>Window</th><th>Date</th><th>Fare</th><th>Mean</th><th>Z-Score</th><th>Type</th><th>Source</th>
+            </tr></thead>
+            <tbody>
+              {anomalies.map((a,i)=>(
                 <tr key={i}>
                   <td style={{fontWeight:700}}>{a.route}</td>
+                  <td>{a.booking_window}</td>
                   <td>{a.date}</td>
-                  <td>{a.window}</td>
-                  <td style={{color:"var(--accent-rose)",fontWeight:700}}>₹{a.fare.toLocaleString()}</td>
-                  <td>₹{a.mean_fare.toLocaleString()}</td>
-                  <td style={{fontWeight:700}}>{a.z_score.toFixed(1)}σ</td>
-                  <td><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold" style={{background:cc.bg,color:cc.text}}>{cc.label}</span></td>
-                  <td>{a.source}</td>
+                  <td style={{fontWeight:700}}>₹{a.fare?.toLocaleString()}</td>
+                  <td>₹{a.mean_fare?.toLocaleString()}</td>
+                  <td style={{color:CLASS_COLORS[a.classification]||"#64748b",fontWeight:700}}>{a.z_score?.toFixed(2)}</td>
+                  <td><span style={{display:"inline-block",padding:"2px 10px",borderRadius:999,fontSize:"0.75rem",fontWeight:700,background:`${CLASS_COLORS[a.classification]||"#64748b"}15`,color:CLASS_COLORS[a.classification]||"#64748b"}}>{CLASS_LABELS[a.classification]||a.classification}</span></td>
+                  <td style={{fontSize:"0.8rem",color:"var(--text-secondary)"}}>{a.source || a.carrier}</td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
