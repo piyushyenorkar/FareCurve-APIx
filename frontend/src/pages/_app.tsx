@@ -7,7 +7,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>APIx Dashboard</title>
+        <title>AeroMetrics Dashboard</title>
       </Head>
       <div className="min-h-screen bg-[#fafafa] flex font-sans text-gray-900">
         <Sidebar />
