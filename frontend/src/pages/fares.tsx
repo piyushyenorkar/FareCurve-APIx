@@ -65,7 +65,14 @@ export default function FaresPage() {
 
         <h2 style={{fontSize:"1.1rem",fontWeight:700,marginBottom:"1rem"}}>{route} Fare Breakdown by Carrier</h2>
         {loading ? (
-          <div style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>Loading fare data...</div>
+          <div className="animate-pulse flex flex-col gap-4 mt-4 w-full">
+            <div className="h-[250px] bg-gray-100 rounded-xl w-full"></div>
+            <div className="flex gap-4 mt-2">
+              <div className="h-3 bg-gray-200 rounded w-full"></div>
+              <div className="h-3 bg-gray-100 rounded w-full"></div>
+              <div className="h-3 bg-gray-200 rounded w-full"></div>
+            </div>
+          </div>
         ) : carriers.length === 0 ? (
           <div style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>No fare data available for this route yet.</div>
         ) : (

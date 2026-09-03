@@ -28,7 +28,15 @@ export default function QualityPage() {
         Pipeline coverage and confidence metrics — live from the database
       </p>
       {loading ? (
-        <div className="glass-card" style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>Loading quality data...</div>
+        <div className="glass-card animate-pulse flex flex-col gap-4 w-full">
+          <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="flex gap-4">
+            <div className="h-24 bg-gray-100 rounded-xl w-full"></div>
+            <div className="h-24 bg-gray-100 rounded-xl w-full"></div>
+            <div className="h-24 bg-gray-100 rounded-xl w-full"></div>
+          </div>
+          <div className="h-[200px] bg-gray-50 rounded-xl w-full mt-4"></div>
+        </div>
       ) : (
         <>
           {current && (
