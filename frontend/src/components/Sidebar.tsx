@@ -67,10 +67,10 @@ export default function Sidebar() {
           })}
         </div>
       </nav>
-      <div className="sarvam-card p-4 mt-4">
-        <h4 className="text-sm font-semibold mb-1">Pipeline Status</h4>
-        <p className="text-xs text-gray-600 mb-4">Real-time scraping is active.</p>
-        <button onClick={() => setIsLogsOpen(true)} className="w-full py-2.5 bg-black text-white rounded-full text-xs font-semibold shadow-md hover:bg-gray-800 transition-colors">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 mt-4 shadow-sm">
+        <h4 className="text-sm font-semibold mb-1 text-gray-900">Pipeline Status</h4>
+        <p className="text-xs text-gray-500 mb-4">Real-time scraping is active.</p>
+        <button onClick={() => setIsLogsOpen(true)} className="w-full py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors border border-blue-200/50">
           View Logs
         </button>
       </div>
