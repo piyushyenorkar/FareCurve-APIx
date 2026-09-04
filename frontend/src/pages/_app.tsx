@@ -15,7 +15,7 @@ export default function App({ Component, pageProps }: AppProps) {
           {/* Background Aviation Elements */}
           <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
              {/* Photographic Plane Background */}
-             <div className="absolute inset-0 bg-[url('/bg_plane.jpg')] bg-cover bg-center bg-no-repeat opacity-90"></div>
+             <div className="absolute inset-0 bg-[url('/bg_plane.jpg')] bg-cover bg-[position:right_-8rem_top_-13rem] bg-no-repeat opacity-90"></div>
              {/* Light gradient overlay for text readability */}
              <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]"></div>
              <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/20 to-white/70"></div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import { Activity, ArrowRight, ArrowUpRight, ArrowDownRight, CheckCircle2, ShieldCheck, Info, Route, Server, Calendar, ArrowDown } from "lucide-react";
+import { Activity, ArrowRight, ArrowUpRight, ArrowDownRight, CheckCircle2, ShieldCheck, Info, Route, Server, Calendar, ArrowDown, Search, Download, ChevronDown, FileText, Code, Database, FileSpreadsheet, Plane } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import Link from "next/link";
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
@@ -28,6 +28,7 @@ export default function Home() {
   const [latest, setLatest] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [timeFilter, setTimeFilter] = useState<'7D' | '30D' | 'YTD'>('30D');
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   useEffect(() => {
     api.indexLatest().then((d: any) => {
@@ -78,8 +79,8 @@ export default function Home() {
     <div className="mt-2 font-sans relative">
       
       {/* Hero Section */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-10 pt-2 gap-4">
-        <div className="text-left">
+      <div className="mb-10 pt-2">
+        <div className="text-left mb-8">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
             Real-time airfare index
           </h1>
@@ -87,9 +88,89 @@ export default function Home() {
             Tracking aviation price elasticity across India, validated against official DGCA fare data.
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded text-sm font-medium border border-gray-200 text-gray-700 shrink-0">
-          <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
-          Live • updated 3 min ago
+        
+        {/* Controls Row */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          
+          {/* Search Bar */}
+          <div className="relative flex-1 w-full group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl text-gray-900 leading-5 bg-white shadow-sm placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 sm:text-sm transition-all duration-300 hover:border-gray-300 hover:shadow-md"
+              placeholder="Search sectors (e.g. DEL-BOM), airlines, or dates..."
+            />
+          </div>
+
+          {/* Right Controls */}
+          <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+            
+            {/* Live Indicator */}
+            <div className="flex items-center gap-2 bg-green-50 border border-green-100 px-4 py-3.5 rounded-xl text-sm font-bold text-green-700 w-full md:w-auto justify-center whitespace-nowrap shadow-sm">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              Live • updated 3 min ago
+            </div>
+            
+            {/* Export Dropdown */}
+            <div className="relative w-full md:w-auto">
+              <button 
+                onClick={() => setIsExportOpen(!isExportOpen)}
+                className="w-full md:w-auto flex items-center justify-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-gray-800 transition-all"
+              >
+                <Download size={18} />
+                Export Data
+                <ChevronDown size={18} className={`transition-transform duration-300 ${isExportOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isExportOpen && (
+                <div className="absolute right-0 mt-3 w-[340px] bg-[#1c1c1c] rounded-2xl shadow-2xl border border-gray-800 z-50 overflow-hidden transform origin-top-right transition-all">
+                  <div className="flex flex-col p-2 gap-1">
+                    <button className="text-left p-3 rounded-xl hover:bg-white/10 flex gap-4 transition-colors group items-start">
+                      <div className="text-blue-400 mt-0.5">
+                        <Database size={18} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white mb-0.5">Time-Series & Routes (CSV)</span>
+                        <span className="text-[13px] text-gray-400 leading-snug">Daily/Weekly Index values & Route-wise breakdown for CPI integration.</span>
+                      </div>
+                    </button>
+
+                    <button className="text-left p-3 rounded-xl hover:bg-white/10 flex gap-4 transition-colors group items-start">
+                      <div className="text-emerald-400 mt-0.5">
+                        <Calendar size={18} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white mb-0.5">Booking Window Data (Excel)</span>
+                        <span className="text-[13px] text-gray-400 leading-snug">T+1 to T+45 elasticity data & advanced purchase pricing trends.</span>
+                      </div>
+                    </button>
+
+                    <button className="text-left p-3 rounded-xl hover:bg-white/10 flex gap-4 transition-colors group items-start">
+                      <div className="text-purple-400 mt-0.5">
+                        <FileText size={18} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white mb-0.5">DGCA Validation Report (PDF)</span>
+                        <span className="text-[13px] text-gray-400 leading-snug">Back-test summary & Confidence percentage for policy briefings.</span>
+                      </div>
+                    </button>
+                    
+                    <button className="text-left p-3 rounded-xl hover:bg-white/10 flex gap-4 transition-colors group items-start">
+                      <div className="text-gray-300 mt-1 w-[18px] text-center flex justify-center">
+                        <span className="text-[11px] font-bold tracking-wider">API</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-white mb-0.5">API / JSON Integration</span>
+                        <span className="text-[13px] text-gray-400 leading-snug">API Endpoints & JSON access for programmatic NSO/RBI pulling.</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -263,27 +344,33 @@ export default function Home() {
                Open route explorer <ArrowRight size={16} className="ml-2" />
             </Link>
          </div>
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
             {[
-              { route: 'DEL → BOM', flights: 42, status: 'Scraping', progress: 'w-3/4' },
-              { route: 'BLR → DEL', flights: 38, status: 'Queued', progress: 'w-1/4' },
-              { route: 'BOM → BLR', flights: 35, status: 'Scraping', progress: 'w-1/2' },
-              { route: 'CCU → DEL', flights: 29, status: 'Queued', progress: 'w-1/3' },
-              { route: 'HYD → BOM', flights: 24, status: 'Scraping', progress: 'w-2/3' },
-              { route: 'MAA → DEL', flights: 21, status: 'Done', progress: 'w-full' }
+              { route: 'DEL-BOM', flights: 42, status: 'Scraping', progress: 'w-3/4' },
+              { route: 'BLR-DEL', flights: 38, status: 'Queued', progress: 'w-1/4' },
+              { route: 'BOM-BLR', flights: 35, status: 'Scraping', progress: 'w-1/2' },
+              { route: 'CCU-DEL', flights: 29, status: 'Queued', progress: 'w-1/3' },
+              { route: 'HYD-BOM', flights: 24, status: 'Scraping', progress: 'w-2/3' },
+              { route: 'MAA-DEL', flights: 21, status: 'Done', progress: 'w-full' }
             ].map((sector, i) => (
-               <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 hover:bg-gray-50 transition-colors cursor-pointer flex justify-between items-center shadow-sm">
-                  <div>
-                    <div className="text-sm font-bold text-gray-900 mb-1">{sector.route}</div>
-                    <div className="text-xs text-gray-500">{sector.flights} flights tracked</div>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${sector.status === 'Done' ? 'text-green-600' : 'text-blue-600'}`}>
-                       {sector.status !== 'Done' && <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>}
+               <div key={i} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:border-gray-300 transition-colors">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="text-[16px] font-bold text-gray-900 tracking-wide flex items-center gap-2">
+                        <Plane size={18} className="text-gray-700" /> {sector.route}
+                      </div>
+                      <div className="text-[11px] font-semibold text-gray-500 mt-1.5 flex items-center gap-1.5 uppercase tracking-wider">
+                        <Route size={12} className="text-gray-400" /> {sector.flights} flights tracked
+                      </div>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${sector.status === 'Done' ? 'bg-green-50 text-green-700' : sector.status === 'Scraping' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>
+                       {sector.status !== 'Done' && <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${sector.status === 'Scraping' ? 'bg-blue-600' : 'bg-amber-500'}`}></span>}
                        {sector.status}
                     </span>
-                    <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                       <div className={`h-full ${sector.status === 'Done' ? 'bg-green-500' : 'bg-blue-500 animate-pulse'} rounded-full ${sector.progress}`}></div>
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                       <div className={`h-full ${sector.status === 'Done' ? 'bg-green-500' : sector.status === 'Scraping' ? 'bg-blue-500' : 'bg-amber-500'} rounded-full ${sector.progress}`}></div>
                     </div>
                   </div>
                </div>
