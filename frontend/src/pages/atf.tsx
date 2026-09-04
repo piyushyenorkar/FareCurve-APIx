@@ -29,7 +29,15 @@ export default function ATFPage() {
         WPI ATF price vs AeroMetrics Index correlation — live reference data
       </p>
       {loading ? (
-        <div className="glass-card" style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>Loading ATF data...</div>
+        <div className="glass-card animate-pulse flex flex-col gap-4 w-full">
+          <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="flex gap-4">
+            <div className="h-24 bg-gray-100 rounded-xl w-full"></div>
+            <div className="h-24 bg-gray-100 rounded-xl w-full"></div>
+            <div className="h-24 bg-gray-100 rounded-xl w-full"></div>
+          </div>
+          <div className="h-[200px] bg-gray-50 rounded-xl w-full mt-4"></div>
+        </div>
       ) : chartData.length === 0 ? (
         <div className="glass-card" style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>
           No ATF correlation data available yet. Run the pipeline and reference data refresh.

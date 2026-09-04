@@ -71,7 +71,14 @@ export default function RoutesPage() {
         )}
         <h2 style={{fontSize:"1.1rem",fontWeight:700,marginBottom:"1rem"}}>{selected} — Index Trend</h2>
         {loading ? (
-          <div style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>Loading...</div>
+          <div className="animate-pulse flex flex-col gap-4 mt-4 w-full">
+            <div className="h-[250px] bg-gray-100 rounded-xl w-full"></div>
+            <div className="flex gap-4 mt-2">
+              <div className="h-3 bg-gray-200 rounded w-full"></div>
+              <div className="h-3 bg-gray-100 rounded w-full"></div>
+              <div className="h-3 bg-gray-200 rounded w-full"></div>
+            </div>
+          </div>
         ) : history.length === 0 ? (
           <div style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>No historical data for this route.</div>
         ) : (

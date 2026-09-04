@@ -39,11 +39,7 @@ body {
 
 /* Missing UI Components */
 .glass-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03);
-  border-radius: 20px;
-  padding: 1.5rem;
+  @apply bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors duration-200;
 }
 
 .data-table {
