@@ -363,23 +363,14 @@ export default function Home() {
                         <Route size={12} className="text-gray-400" /> {sector.flights} flights tracked
                       </div>
                     </div>
-                    <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${
-                        sector.status === 'Done' ? 'bg-green-50 text-green-700' : 
-                        sector.status === 'Scraping' ? 'bg-blue-50 text-blue-700' : 
-                        'bg-amber-50 text-amber-700'
-                      }`}>
-                       {sector.status === 'Scraping' && <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>}
-                       {sector.status === 'Queued' && <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>}
+                    <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${sector.status === 'Done' ? 'bg-green-50 text-green-700' : sector.status === 'Scraping' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>
+                       {sector.status !== 'Done' && <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${sector.status === 'Scraping' ? 'bg-blue-600' : 'bg-amber-500'}`}></span>}
                        {sector.status}
                     </span>
                   </div>
                   <div className="flex flex-col">
                     <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                       <div className={`h-full ${
-                         sector.status === 'Done' ? 'bg-green-500' : 
-                         sector.status === 'Scraping' ? 'bg-blue-500' : 
-                         'bg-amber-400'
-                       } rounded-full ${sector.progress}`}></div>
+                       <div className={`h-full ${sector.status === 'Done' ? 'bg-green-500' : sector.status === 'Scraping' ? 'bg-blue-500' : 'bg-amber-500'} rounded-full ${sector.progress}`}></div>
                     </div>
                   </div>
                </div>
