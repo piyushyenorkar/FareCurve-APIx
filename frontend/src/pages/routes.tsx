@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Plane } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
+import { TimeFilter } from "../components/TimeFilter";
 
 const ROUTES = ["DEL-BOM","DEL-BLR","BOM-BLR","DEL-CCU","BLR-HYD","MAA-DEL","DEL-HYD","BOM-CCU","DEL-PNQ","DEL-AMD","BOM-GOI","DEL-GOI","DEL-LKO","DEL-SXR","DEL-JAI","DEL-MAA"];
 const COLORS = ["#3b82f6","#8b5cf6","#f43f5e","#f97316","#10b981","#06b6d4","#eab308","#6366f1"];
@@ -11,6 +12,7 @@ export default function RoutesPage() {
   const [selected, setSelected] = useState("DEL-BOM");
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [timeFilter, setTimeFilter] = useState<string>('7D');
 
   useEffect(() => {
     setLoading(true);
@@ -29,6 +31,10 @@ export default function RoutesPage() {
   }, [selected]);
 
   const latest = history.length > 0 ? history[history.length - 1] : null;
+
+  let chartData = history;
+  if (timeFilter === '7D') chartData = history.slice(-3);
+  else if (timeFilter === '30D') chartData = history.slice(-6);
 
   return (
     <div>
@@ -69,7 +75,10 @@ export default function RoutesPage() {
             </div>
           </div>
         )}
-        <h2 style={{fontSize:"1.1rem",fontWeight:700,marginBottom:"1rem"}}>{selected} — Index Trend</h2>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem"}}>
+          <h2 style={{fontSize:"1.1rem",fontWeight:700}}>{selected} — Index Trend</h2>
+          <TimeFilter value={timeFilter} onChange={setTimeFilter} layoutIdPrefix="routesFilter" />
+        </div>
         {loading ? (
           <div className="animate-pulse flex flex-col gap-4 mt-4 w-full">
             <div className="h-[250px] bg-gray-100 rounded-xl w-full"></div>
@@ -83,7 +92,7 @@ export default function RoutesPage() {
           <div style={{textAlign:"center",padding:"3rem",color:"var(--text-muted)"}}>No historical data for this route.</div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={history}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
               <XAxis dataKey="date" tick={{fill:"#64748b",fontSize:11}}/>
               <YAxis tick={{fill:"#64748b",fontSize:11}} domain={["auto","auto"]}/>
