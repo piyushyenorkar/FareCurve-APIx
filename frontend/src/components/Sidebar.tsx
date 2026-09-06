@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, Route, Activity, TrendingUp, AlertCircle, ShieldCheck, Database, Droplet, CheckCircle2 } from "lucide-react";
+import { Home, Route, Activity, TrendingUp, AlertCircle, ShieldCheck, Database, Droplet, CheckCircle2, Grid } from "lucide-react";
 import { useRouter } from "next/router";
 
 export default function Sidebar() {
@@ -14,6 +14,7 @@ export default function Sidebar() {
     { label: "Raw Fares", icon: Database, href: "/fares" },
     { label: "ATF Impact", icon: Droplet, href: "/atf" },
     { label: "Data Quality", icon: CheckCircle2, href: "/quality" },
+    { label: "Fare Matrix", icon: Grid, href: "/heatmap" },
   ];
 
   return (
