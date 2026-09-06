@@ -16,11 +16,11 @@ export default function Home() {
   useEffect(() => {
     api.indexLatest().then((d: any) => {
       if (d && d.value) setLatest(d);
-    }).catch(() => {});
-    
+    }).catch(() => { });
+
     api.indexOverall(30).then((d: any) => {
       if (d) setHistory(d.reverse()); // Reverse to chronological
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   // Government aesthetic: stable, minimal hover, sharp borders, high contrast.
@@ -46,7 +46,7 @@ export default function Home() {
     { date: 'Sep 1', value: 118 },
     { date: 'Sep 3', value: 123.39 }
   ];
-  
+
   const fullData = history.length ? history : fallbackData;
   let chartData = fullData;
   if (timeFilter === '7D') {
@@ -57,7 +57,7 @@ export default function Home() {
 
   return (
     <div className="mt-2 font-sans relative">
-      
+
       {/* Hero Section */}
       <div className="mb-10 pt-2">
         <div className="text-left mb-8">
@@ -68,10 +68,10 @@ export default function Home() {
             Tracking aviation price elasticity across India, validated against official DGCA fare data.
           </p>
         </div>
-        
+
         {/* Controls Row */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          
+
           {/* Search Bar */}
           <div className="relative flex-1 w-full group">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -86,9 +86,9 @@ export default function Home() {
 
           {/* Right Controls */}
           <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-            
+
             {/* Live Indicator */}
-            <div 
+            <div
               onClick={() => setIsLogsOpen(true)}
               className="group flex items-center gap-3 bg-white border border-gray-200 pl-4 pr-3 py-2.5 rounded-full text-sm font-medium text-gray-600 w-full md:w-auto justify-center whitespace-nowrap shadow-sm cursor-pointer hover:bg-gray-50 hover:border-blue-200 transition-all">
               <div className="flex items-center gap-2">
@@ -99,10 +99,10 @@ export default function Home() {
                 View logs <ArrowRight size={14} />
               </div>
             </div>
-            
+
             {/* Export Dropdown */}
             <div className="relative w-full md:w-auto">
-              <button 
+              <button
                 onClick={() => setIsExportOpen(!isExportOpen)}
                 className="w-full md:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full text-sm font-bold shadow-md hover:bg-blue-700 transition-all"
               >
@@ -110,7 +110,7 @@ export default function Home() {
                 Export Data
                 <ChevronDown size={18} className={`transition-transform duration-300 ${isExportOpen ? 'rotate-180' : ''}`} />
               </button>
-              
+
               {isExportOpen && (
                 <div className="absolute right-0 mt-3 w-[340px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden transform origin-top-right transition-all">
                   <div className="flex flex-col p-2 gap-1">
@@ -143,7 +143,7 @@ export default function Home() {
                         <span className="text-[13px] text-gray-500 leading-snug">Back-test summary & Confidence percentage for policy briefings.</span>
                       </div>
                     </button>
-                    
+
                     <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
                       <div className="text-gray-400 mt-1 w-[18px] text-center flex justify-center">
                         <span className="text-[11px] font-bold tracking-wider">API</span>
@@ -165,27 +165,27 @@ export default function Home() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className={cardStyle}>
           <div className="flex justify-between items-center mb-3">
-             <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                <Activity className="text-gray-400 w-4 h-4" /> FareCurve value
-             </div>
-             <InfoTooltip text="Our proprietary price index (Base 100 = Aug 2023). A value of 123 means airfares are 23% higher than the baseline. Calculated using the Jevons Geometric Mean to prevent extreme outliers." />
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <Activity className="text-gray-400 w-4 h-4" /> FareCurve value
+            </div>
+            <InfoTooltip text="Our proprietary price index (Base 100 = Aug 2023). A value of 123 means airfares are 23% higher than the baseline. Calculated using the Jevons Geometric Mean to prevent extreme outliers." />
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-4xl font-bold tracking-tight text-gray-900">
               {latest ? latest.value.toFixed(2) : "123.39"}
             </span>
             <div className={`text-sm font-semibold flex items-center gap-1 ${trendColor}`}>
-               <TrendIcon size={14} strokeWidth={3} /> {isPositive ? "+" : ""}{trendValue} vs last week
+              <TrendIcon size={14} strokeWidth={3} /> {isPositive ? "+" : ""}{trendValue} vs last week
             </div>
           </div>
         </div>
-        
+
         <div className={cardStyle}>
           <div className="flex justify-between items-center mb-3">
-             <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                <Route className="text-gray-400 w-4 h-4" /> Routes tracked
-             </div>
-             <InfoTooltip text="Number of high-traffic domestic Indian flight routes (e.g., DEL-BOM, BLR-CCU) currently being scraped and analyzed in real-time." />
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <Route className="text-gray-400 w-4 h-4" /> Routes tracked
+            </div>
+            <InfoTooltip text="Number of high-traffic domestic Indian flight routes (e.g., DEL-BOM, BLR-CCU) currently being scraped and analyzed in real-time." />
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-4xl font-bold tracking-tight text-gray-900">17</span>
@@ -195,10 +195,10 @@ export default function Home() {
 
         <div className={cardStyle}>
           <div className="flex justify-between items-center mb-3">
-             <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                <Server className="text-gray-400 w-4 h-4" /> Sources allowed
-             </div>
-             <InfoTooltip text="Number of airline/OTA websites we scrape. We strictly respect robots.txt compliance, ensuring our web scraping is 100% ethical and legal." />
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <Server className="text-gray-400 w-4 h-4" /> Sources allowed
+            </div>
+            <InfoTooltip text="Number of airline/OTA websites we scrape. We strictly respect robots.txt compliance, ensuring our web scraping is 100% ethical and legal." />
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-4xl font-bold tracking-tight text-gray-900">4 <span className="text-xl text-gray-500 font-medium tracking-normal">of 11</span></span>
@@ -208,10 +208,10 @@ export default function Home() {
 
         <div className={cardStyle}>
           <div className="flex justify-between items-center mb-3">
-             <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                <Calendar className="text-gray-400 w-4 h-4" /> Booking windows
-             </div>
-             <InfoTooltip text="We track how prices change depending on how far in advance a ticket is bought (e.g., T+1 day, T+15 days, T+30 days before departure)." />
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <Calendar className="text-gray-400 w-4 h-4" /> Booking windows
+            </div>
+            <InfoTooltip text="We track how prices change depending on how far in advance a ticket is bought (e.g., T+1 day, T+15 days, T+30 days before departure)." />
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-4xl font-bold tracking-tight text-gray-900">5</span>
@@ -234,23 +234,23 @@ export default function Home() {
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} dy={10} />
-              <YAxis domain={['auto', 'auto']} axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: "#ffffff", borderRadius: "4px", border: "1px solid #e5e7eb", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", padding: "8px 12px" }} 
-                itemStyle={{ color: "#111827", fontSize: "14px", fontWeight: 600, padding: 0 }} 
-                labelStyle={{ display: "none" }} 
+              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
+              <YAxis domain={['auto', 'auto']} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#ffffff", borderRadius: "4px", border: "1px solid #e5e7eb", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", padding: "8px 12px" }}
+                itemStyle={{ color: "#111827", fontSize: "14px", fontWeight: 600, padding: 0 }}
+                labelStyle={{ display: "none" }}
               />
               <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={3} strokeDasharray="6 6" dot={false} activeDot={{ r: 6, fill: "#2563eb", stroke: "#fff", strokeWidth: 2 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
         <div className="text-sm text-gray-400 mt-6 flex justify-between items-center">
-            <span>Awaiting live pipeline data</span>
+          <span>Awaiting live pipeline data</span>
         </div>
         {/* Floating scroll indicator */}
         <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors">
-           <ArrowDown size={18} />
+          <ArrowDown size={18} />
         </div>
       </div>
 
@@ -287,7 +287,7 @@ export default function Home() {
             Explore booking curve <ArrowRight size={16} className="ml-2" />
           </Link>
         </div>
-        
+
         {/* DGCA Validation Card */}
         <div className={`${cardStyle} !justify-between gap-6 group`}>
           <div>
@@ -307,47 +307,47 @@ export default function Home() {
 
       {/* Fare by Sector - New Bottom Section */}
       <div className={cardStyle}>
-         <div className="flex justify-between items-center mb-6">
-            <h3 className="font-bold text-gray-900 text-lg">Fare by sector</h3>
-            <Link href="/routes" className="inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
-               Open route explorer <ArrowRight size={16} className="ml-2" />
-            </Link>
-         </div>
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
-            {[
-              { route: 'DEL-BOM', flights: 42, status: 'Scraping', progress: 'w-3/4' },
-              { route: 'BLR-DEL', flights: 38, status: 'Queued', progress: 'w-1/4' },
-              { route: 'BOM-BLR', flights: 35, status: 'Scraping', progress: 'w-1/2' },
-              { route: 'CCU-DEL', flights: 29, status: 'Queued', progress: 'w-1/3' },
-              { route: 'HYD-BOM', flights: 24, status: 'Scraping', progress: 'w-2/3' },
-              { route: 'MAA-DEL', flights: 21, status: 'Done', progress: 'w-full' }
-            ].map((sector, i) => (
-               <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-gray-300 transition-colors">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <div className="text-[16px] font-bold text-gray-900 tracking-wide flex items-center gap-2">
-                        <Plane size={18} className="text-gray-700" /> {sector.route}
-                      </div>
-                      <div className="text-[11px] font-semibold text-gray-500 mt-1.5 flex items-center gap-1.5 uppercase tracking-wider">
-                        <Route size={12} className="text-gray-400" /> {sector.flights} flights tracked
-                      </div>
-                    </div>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${sector.status === 'Done' ? 'bg-green-50 text-green-700' : sector.status === 'Scraping' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>
-                       {sector.status !== 'Done' && <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${sector.status === 'Scraping' ? 'bg-blue-600' : 'bg-amber-500'}`}></span>}
-                       {sector.status}
-                    </span>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="font-bold text-gray-900 text-lg">Fare by sector</h3>
+          <Link href="/routes" className="inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
+            Open route explorer <ArrowRight size={16} className="ml-2" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
+          {[
+            { route: 'DEL-BOM', flights: 42, status: 'Scraping', progress: 'w-3/4' },
+            { route: 'BLR-DEL', flights: 38, status: 'Queued', progress: 'w-1/4' },
+            { route: 'BOM-BLR', flights: 35, status: 'Scraping', progress: 'w-1/2' },
+            { route: 'CCU-DEL', flights: 29, status: 'Queued', progress: 'w-1/3' },
+            { route: 'HYD-BOM', flights: 24, status: 'Scraping', progress: 'w-2/3' },
+            { route: 'MAA-DEL', flights: 21, status: 'Done', progress: 'w-full' }
+          ].map((sector, i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-gray-300 transition-colors">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <div className="text-[16px] font-bold text-gray-900 tracking-wide flex items-center gap-2">
+                    <Plane size={18} className="text-gray-700" /> {sector.route}
                   </div>
-                  <div className="flex flex-col">
-                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                       <div className={`h-full ${sector.status === 'Done' ? 'bg-green-500' : sector.status === 'Scraping' ? 'bg-blue-500' : 'bg-amber-500'} rounded-full ${sector.progress}`}></div>
-                    </div>
+                  <div className="text-[11px] font-semibold text-gray-500 mt-1.5 flex items-center gap-1.5 uppercase tracking-wider">
+                    <Route size={12} className="text-gray-400" /> {sector.flights} flights tracked
                   </div>
-               </div>
-            ))}
-         </div>
-         <div className="text-sm text-gray-500 mt-2">
-            Awaiting pipeline execution for live sector data
-         </div>
+                </div>
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${sector.status === 'Done' ? 'bg-green-50 text-green-700' : sector.status === 'Scraping' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>
+                  {sector.status !== 'Done' && <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${sector.status === 'Scraping' ? 'bg-blue-600' : 'bg-amber-500'}`}></span>}
+                  {sector.status}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className={`h-full ${sector.status === 'Done' ? 'bg-green-500' : sector.status === 'Scraping' ? 'bg-blue-500' : 'bg-amber-500'} rounded-full ${sector.progress}`}></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="text-sm text-gray-500 mt-2">
+          Awaiting pipeline execution for live sector data
+        </div>
       </div>
 
       {isLogsOpen && (
@@ -356,10 +356,10 @@ export default function Home() {
             {/* Header */}
             <div className="flex justify-between items-center px-5 py-4 border-b border-blue-100 bg-blue-50">
               <div className="flex items-center gap-3">
-                 <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm tracking-wide">
-                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                   Live Pipeline Logs
-                 </h2>
+                <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm tracking-wide">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  Live Pipeline Logs
+                </h2>
               </div>
               <button onClick={() => setIsLogsOpen(false)} className="text-gray-400 hover:text-gray-900 transition-colors p-1 rounded-full hover:bg-gray-200">
                 <X size={18} />
@@ -389,7 +389,7 @@ export default function Home() {
                 </div>
               ))}
               <div className="flex items-center gap-2 text-gray-400 mt-2 px-2 animate-pulse font-bold text-sm">
-                 <span>_</span>
+                <span>_</span>
               </div>
             </div>
           </div>

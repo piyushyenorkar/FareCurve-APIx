@@ -1,19 +1,19 @@
 import Link from "next/link";
-import { Home, Compass, Activity, ShieldCheck, Database, Layers } from "lucide-react";
+import { Home, Route, Activity, TrendingUp, AlertCircle, ShieldCheck, Database, Droplet, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/router";
 
 export default function Sidebar() {
   const router = useRouter();
   const links = [
     { label: "Home", icon: Home, href: "/" },
-    { label: "Route Explorer", icon: Compass, href: "/routes" },
+    { label: "Route Explorer", icon: Route, href: "/routes" },
     { label: "Booking Curve", icon: Activity, href: "/booking-curve" },
-    { label: "Forecasts", icon: Activity, href: "/forecast" },
-    { label: "Anomalies", icon: ShieldCheck, href: "/anomalies" },
+    { label: "Forecasts", icon: TrendingUp, href: "/forecast" },
+    { label: "Anomalies", icon: AlertCircle, href: "/anomalies" },
     { label: "Compliance", icon: ShieldCheck, href: "/compliance" },
     { label: "Raw Fares", icon: Database, href: "/fares" },
-    { label: "ATF Impact", icon: Layers, href: "/atf" },
-    { label: "Data Quality", icon: Layers, href: "/quality" },
+    { label: "ATF Impact", icon: Droplet, href: "/atf" },
+    { label: "Data Quality", icon: CheckCircle2, href: "/quality" },
   ];
 
   return (
@@ -30,15 +30,15 @@ export default function Sidebar() {
       <nav className="flex gap-3 relative">
         {/* Continuous background rail for icons */}
         <div className="absolute left-0 top-0 bottom-0 w-10 bg-gray-100/50 rounded-full z-0"></div>
-        
+
         {/* Icons Column */}
         <div className="flex flex-col w-10 z-10 relative">
           {links.map((link) => {
             const isActive = router.pathname === link.href;
             return (
-              <Link 
-                key={`icon-${link.href}`} 
-                href={link.href} 
+              <Link
+                key={`icon-${link.href}`}
+                href={link.href}
                 className={`h-10 w-10 flex items-center justify-center rounded-full mb-1.5 transition-all ${isActive ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'}`}
                 title={link.label}
               >
@@ -53,9 +53,9 @@ export default function Sidebar() {
           {links.map((link) => {
             const isActive = router.pathname === link.href;
             return (
-              <Link 
-                key={`text-${link.href}`} 
-                href={link.href} 
+              <Link
+                key={`text-${link.href}`}
+                href={link.href}
                 className={`h-10 flex items-center px-4 rounded-full mb-1.5 text-sm transition-all ${isActive ? 'bg-white font-medium text-black shadow-sm border border-gray-100' : 'text-gray-600 hover:bg-gray-50 border border-transparent hover:text-black'}`}
               >
                 {link.label}
