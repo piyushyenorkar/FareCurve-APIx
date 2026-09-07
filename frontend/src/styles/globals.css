@@ -30,12 +30,26 @@ body {
   animation: flyUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   opacity: 0;
 }
+
 @keyframes flyUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
+
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
 
 /* Missing UI Components */
 .glass-card {
@@ -47,6 +61,7 @@ body {
   border-collapse: collapse;
   font-size: 0.875rem;
 }
+
 .data-table th {
   text-align: left;
   padding: 1rem;
@@ -55,18 +70,22 @@ body {
   border-bottom: 2px solid #f1f5f9;
   background-color: #ffffff;
 }
+
 .data-table td {
   padding: 1rem;
   border-bottom: 1px solid #f1f5f9;
   color: #334155;
   vertical-align: middle;
 }
+
 .data-table tbody tr {
   transition: all 0.2s ease;
 }
+
 .data-table tbody tr:hover {
   background-color: #f8fafc;
 }
+
 .data-table tbody tr:last-child td {
   border-bottom: none;
 }
