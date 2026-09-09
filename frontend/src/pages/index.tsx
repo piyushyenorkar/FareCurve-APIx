@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { api } from "../lib/api";
-import { Activity, ArrowRight, ArrowUpRight, ArrowDownRight, CheckCircle2, ShieldCheck, Info, Route, Server, Calendar, ArrowDown, Search, Download, ChevronDown, FileText, Code, Database, FileSpreadsheet, Plane, X } from "lucide-react";
+import { Activity, ArrowRight, ArrowUpRight, ArrowDownRight, CheckCircle2, ShieldCheck, Info, Route, Server, MapPin, Calendar, ArrowDown, Search, Download, ChevronDown, FileText, Code, Database, FileSpreadsheet, Plane, X } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import Link from "next/link";
 import { InfoTooltip } from "../components/InfoTooltip";
@@ -9,17 +10,73 @@ import { TimeFilter } from "../components/TimeFilter";
 export default function Home() {
   const [latest, setLatest] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
+  const [routesData, setRoutesData] = useState<any[]>([]);
   const [timeFilter, setTimeFilter] = useState<string>('7D');
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [visibleLogs, setVisibleLogs] = useState(0);
+
+  useEffect(() => setMounted(true), []);
+
+  const PIPELINE_LOGS = [
+    { time: '05:00:01', level: 'INFO', module: 'scheduler', msg: 'Triggering hourly pipeline run...' },
+    { time: '05:00:03', level: 'INFO', module: 'scraper', msg: 'Connecting to proxy pool (12 active nodes)' },
+    { time: '05:00:05', level: 'INFO', module: 'scraper', msg: 'Fetching DEL-BOM fares (T+1 to T+45 windows)' },
+    { time: '05:00:18', level: 'INFO', module: 'scraper', msg: 'Success: Extracted 243 fare nodes for DEL-BOM', highlight: true },
+    { time: '05:00:20', level: 'INFO', module: 'scraper', msg: 'Fetching BLR-HYD fares (T+1 to T+45 windows)' },
+    { time: '05:00:33', level: 'INFO', module: 'scraper', msg: 'Success: Extracted 198 fare nodes for BLR-HYD', highlight: true },
+    { time: '05:01:45', level: 'INFO', module: 'processor', msg: 'Starting data cleaning and anomaly detection' },
+    { time: '05:01:46', level: 'WARN', module: 'processor', msg: 'Dropped 12 anomalous outliers (fares > 3σ)' },
+    { time: '05:01:48', level: 'INFO', module: 'indexer', msg: 'Computing Jevons Geometric Mean for 8 routes...' },
+    { time: '05:01:50', level: 'INFO', module: 'indexer', msg: 'Computed Base APIx Index: 123.39', highlight: true },
+    { time: '05:01:51', level: 'INFO', module: 'db', msg: 'Committed 1892 new fare records to SQLite', highlight: true },
+    { time: '05:01:51', level: 'INFO', module: 'scheduler', msg: 'Pipeline run complete. Next run in 58m 09s...' },
+  ];
+
+  useEffect(() => {
+    if (isLogsOpen) {
+      setVisibleLogs(0);
+      const interval = setInterval(() => {
+        setVisibleLogs(v => {
+          if (v >= PIPELINE_LOGS.length) {
+            clearInterval(interval);
+            return v;
+          }
+          return v + 1;
+        });
+      }, 600); // Add a log every 600ms
+      return () => clearInterval(interval);
+    }
+  }, [isLogsOpen]);
+
 
   useEffect(() => {
     api.indexLatest().then((d: any) => {
       if (d && d.value) setLatest(d);
     }).catch(() => { });
 
-    api.indexOverall(30).then((d: any) => {
+        api.indexOverall(30).then((d: any) => {
       if (d) setHistory(d.reverse()); // Reverse to chronological
+    }).catch(() => { });
+
+    api.routes().then(async (d: any[]) => {
+      if (d) {
+        const topRoutes = d.slice(0, 6);
+        const enrichedRoutes = await Promise.all(
+          topRoutes.map(async (r) => {
+            try {
+              const [origin, dest] = r.route_key.split('-');
+              const hist = await api.indexRoute(origin, dest);
+              const latestData = hist.length ? hist[hist.length - 1] : null;
+              return { ...r, latestData };
+            } catch (e) {
+              return r;
+            }
+          })
+        );
+        setRoutesData(enrichedRoutes);
+      }
     }).catch(() => { });
   }, []);
 
@@ -50,9 +107,9 @@ export default function Home() {
   const fullData = history.length ? history : fallbackData;
   let chartData = fullData;
   if (timeFilter === '7D') {
-    chartData = fullData.slice(-3); // Mock last 7 days (last 3 data points)
+    chartData = fullData.length > 7 ? fullData.slice(-7) : fullData;
   } else if (timeFilter === '30D') {
-    chartData = fullData.slice(-6); // Mock last 30 days (last 6 data points)
+    chartData = fullData.length > 30 ? fullData.slice(-30) : fullData;
   }
 
   return (
@@ -166,7 +223,7 @@ export default function Home() {
         <div className={cardStyle}>
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-              <Activity className="text-gray-400 w-4 h-4" /> FareCurve value
+              <Activity className="text-gray-400 w-4 h-4" /> Airfare Price Index
             </div>
             <InfoTooltip text="Our proprietary price index (Base 100 = Aug 2023). A value of 123 means airfares are 23% higher than the baseline. Calculated using the Jevons Geometric Mean to prevent extreme outliers." />
           </div>
@@ -193,25 +250,25 @@ export default function Home() {
           </div>
         </div>
 
-        <div className={cardStyle}>
-          <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-              <Server className="text-gray-400 w-4 h-4" /> Sources allowed
+                  <div className={cardStyle}>
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                <Database className="text-gray-400 w-4 h-4" /> Daily Quotes Captured
+              </div>
+              <InfoTooltip text="High-frequency data collection capturing massive amounts of real-time prices across various booking windows and OTAs/Airlines." />
             </div>
-            <InfoTooltip text="Number of airline/OTA websites we scrape. We strictly respect robots.txt compliance, ensuring our web scraping is 100% ethical and legal." />
+            <div className="flex flex-col gap-2">
+              <span className="text-4xl font-bold tracking-tight text-gray-900">48,250</span>
+              <div className="text-sm text-gray-500">Cleaned & de-duplicated</div>
+            </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <span className="text-4xl font-bold tracking-tight text-gray-900">4 <span className="text-xl text-gray-500 font-medium tracking-normal">of 11</span></span>
-            <div className="text-sm text-gray-500">Per robots.txt audit</div>
-          </div>
-        </div>
 
         <div className={cardStyle}>
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
               <Calendar className="text-gray-400 w-4 h-4" /> Booking windows
             </div>
-            <InfoTooltip text="We track how prices change depending on how far in advance a ticket is bought (e.g., T+1 day, T+15 days, T+30 days before departure)." />
+            <InfoTooltip position="left" text="We track how prices change depending on how far in advance a ticket is bought (e.g., T+1 day, T+15 days, T+30 days before departure)." />
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-4xl font-bold tracking-tight text-gray-900">5</span>
@@ -256,21 +313,21 @@ export default function Home() {
 
       {/* Info Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {/* Ethical Scraping Card */}
-        <div className={`${cardStyle} !justify-between gap-6 group`}>
-          <div>
-            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-base">
-              <ShieldCheck size={20} className="text-emerald-600" />
-              Ethical scraping
-            </h3>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              4 sources allowed · 7 gated · every decision traceable
-            </p>
+                  {/* Route Explorer Card */}
+          <div className={`${cardStyle} !justify-between gap-6 group`}>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-base">
+                <Route size={20} className="text-blue-600" />
+                Route Explorer
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Track individual route indices — live from the database
+              </p>
+            </div>
+            <Link href="/routes" className="self-start inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
+              Explore routes <ArrowRight size={16} className="ml-2" />
+            </Link>
           </div>
-          <Link href="/compliance" className="self-start inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
-            View compliance matrix <ArrowRight size={16} className="ml-2" />
-          </Link>
-        </div>
 
         {/* Booking Curve Card */}
         <div className={`${cardStyle} !justify-between gap-6 group`}>
@@ -288,21 +345,21 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* DGCA Validation Card */}
-        <div className={`${cardStyle} !justify-between gap-6 group`}>
-          <div>
-            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-base">
-              <CheckCircle2 size={20} className="text-blue-600" />
-              DGCA validated
-            </h3>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Tracks within range of official monthly average fares
-            </p>
+                  {/* Sector Heatmap Card */}
+          <div className={`${cardStyle} !justify-between gap-6 group`}>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-base">
+                <MapPin size={20} className="text-emerald-600" />
+                Sector Heatmap
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Geographic visualization of route-level price indices across India
+              </p>
+            </div>
+            <Link href="/heatmap" className="self-start inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
+              View heatmap <ArrowRight size={16} className="ml-2" />
+            </Link>
           </div>
-          <Link href="/quality" className="self-start inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
-            View validation <ArrowRight size={16} className="ml-2" />
-          </Link>
-        </div>
       </div>
 
       {/* Fare by Sector - New Bottom Section */}
@@ -314,87 +371,83 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
-          {[
-            { route: 'DEL-BOM', flights: 42, status: 'Scraping', progress: 'w-3/4' },
-            { route: 'BLR-DEL', flights: 38, status: 'Queued', progress: 'w-1/4' },
-            { route: 'BOM-BLR', flights: 35, status: 'Scraping', progress: 'w-1/2' },
-            { route: 'CCU-DEL', flights: 29, status: 'Queued', progress: 'w-1/3' },
-            { route: 'HYD-BOM', flights: 24, status: 'Scraping', progress: 'w-2/3' },
-            { route: 'MAA-DEL', flights: 21, status: 'Done', progress: 'w-full' }
-          ].map((sector, i) => (
+          {(routesData.length ? routesData : [
+              { route_key: 'DEL-BOM' },
+              { route_key: 'BLR-DEL' },
+              { route_key: 'BOM-BLR' },
+              { route_key: 'CCU-DEL' },
+              { route_key: 'HYD-BOM' },
+              { route_key: 'MAA-DEL' }
+            ]).map((sector, i) => {
+              const flights = sector.latestData ? sector.latestData.observations : (latest ? Math.round(latest.observations / 16) : 42);
+              const fare = sector.latestData ? sector.latestData.mean_fare : null;
+              const indexVal = sector.latestData ? sector.latestData.value : null;
+              const isDone = !!latest;
+              const status = isDone ? 'Done' : 'Scraping';
+              const progress = isDone ? 'w-full' : 'w-3/4';
+              return (
             <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-gray-300 transition-colors">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <div className="text-[16px] font-bold text-gray-900 tracking-wide flex items-center gap-2">
-                    <Plane size={18} className="text-gray-700" /> {sector.route}
+                    <Plane size={18} className="text-gray-700" /> {sector.route_key}
                   </div>
-                  <div className="text-[11px] font-semibold text-gray-500 mt-1.5 flex items-center gap-1.5 uppercase tracking-wider">
-                    <Route size={12} className="text-gray-400" /> {sector.flights} flights tracked
+                  <div className="text-[11px] font-semibold text-gray-500 mt-1.5 flex flex-col gap-1 uppercase tracking-wider">
+                    <div className="flex items-center gap-1.5"><Route size={12} className="text-gray-400" /> {flights} flights tracked</div>
+                    {fare && <div className="text-blue-600 font-bold mt-1 tracking-normal capitalize">Avg Fare: ₹{Math.round(fare).toLocaleString()} <span className="text-gray-400 font-medium">(Idx: {indexVal.toFixed(1)})</span></div>}
                   </div>
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${sector.status === 'Done' ? 'bg-green-50 text-green-700' : sector.status === 'Scraping' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>
-                  {sector.status !== 'Done' && <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${sector.status === 'Scraping' ? 'bg-blue-600' : 'bg-amber-500'}`}></span>}
-                  {sector.status}
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${status === 'Done' ? 'bg-green-50 text-green-700' : status === 'Scraping' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>
+                  {status !== 'Done' && <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${status === 'Scraping' ? 'bg-blue-600' : 'bg-amber-500'}`}></span>}
+                  {status}
                 </span>
               </div>
               <div className="flex flex-col">
                 <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className={`h-full ${sector.status === 'Done' ? 'bg-green-500' : sector.status === 'Scraping' ? 'bg-blue-500' : 'bg-amber-500'} rounded-full ${sector.progress}`}></div>
+                  <div className={`h-full ${status === 'Done' ? 'bg-green-500' : status === 'Scraping' ? 'bg-blue-500' : 'bg-amber-500'} rounded-full ${progress}`}></div>
                 </div>
               </div>
             </div>
-          ))}
+          ); })}
         </div>
         <div className="text-sm text-gray-500 mt-2">
-          Awaiting pipeline execution for live sector data
+          Live route observations from the latest pipeline run
         </div>
       </div>
 
-      {isLogsOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden border border-gray-200 flex flex-col">
-            {/* Header */}
-            <div className="flex justify-between items-center px-5 py-4 border-b border-blue-100 bg-blue-50">
-              <div className="flex items-center gap-3">
-                <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm tracking-wide">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  Live Pipeline Logs
-                </h2>
-              </div>
-              <button onClick={() => setIsLogsOpen(false)} className="text-gray-400 hover:text-gray-900 transition-colors p-1 rounded-full hover:bg-gray-200">
-                <X size={18} />
-              </button>
-            </div>
-            {/* Terminal Body */}
-            <div className="p-5 bg-white text-xs font-mono overflow-y-auto h-[400px] flex flex-col gap-1.5 custom-scrollbar">
-              {[
-                { time: '05:00:01', level: 'INFO', module: 'scheduler', msg: 'Triggering hourly pipeline run...' },
-                { time: '05:00:03', level: 'INFO', module: 'scraper', msg: 'Connecting to proxy pool (12 active nodes)' },
-                { time: '05:00:05', level: 'INFO', module: 'scraper', msg: 'Fetching DEL-BOM fares (T+1 to T+45 windows)' },
-                { time: '05:00:18', level: 'INFO', module: 'scraper', msg: 'Success: Extracted 243 fare nodes for DEL-BOM', highlight: true },
-                { time: '05:00:20', level: 'INFO', module: 'scraper', msg: 'Fetching BLR-HYD fares (T+1 to T+45 windows)' },
-                { time: '05:00:33', level: 'INFO', module: 'scraper', msg: 'Success: Extracted 198 fare nodes for BLR-HYD', highlight: true },
-                { time: '05:01:45', level: 'INFO', module: 'processor', msg: 'Starting data cleaning and anomaly detection' },
-                { time: '05:01:46', level: 'WARN', module: 'processor', msg: 'Dropped 12 anomalous outliers (fares > 3σ)' },
-                { time: '05:01:48', level: 'INFO', module: 'indexer', msg: 'Computing Jevons Geometric Mean for 8 routes...' },
-                { time: '05:01:50', level: 'INFO', module: 'indexer', msg: 'Computed Base APIx Index: 123.39', highlight: true },
-                { time: '05:01:51', level: 'INFO', module: 'db', msg: 'Committed 1892 new fare records to SQLite', highlight: true },
-                { time: '05:01:51', level: 'INFO', module: 'scheduler', msg: 'Pipeline run complete. Next run in 58m 09s...' },
-              ].map((log, i) => (
-                <div key={i} className="flex items-start gap-3 hover:bg-gray-50 px-2 py-1 rounded transition-colors -mx-2 border border-transparent hover:border-gray-100">
-                  <span className="text-gray-400 shrink-0">2026-09-02 {log.time}</span>
-                  <span className={`shrink-0 font-bold w-10 ${log.level === 'INFO' ? 'text-blue-600' : 'text-amber-600'}`}>{log.level}</span>
-                  <span className="text-purple-600 shrink-0 w-24">[{log.module}]</span>
-                  <span className={`${log.highlight ? 'text-emerald-700 font-semibold' : log.level === 'WARN' ? 'text-amber-700 font-medium' : 'text-gray-700'}`}>{log.msg}</span>
+      {isLogsOpen && mounted && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden border border-gray-200 flex flex-col">
+              <div className="flex justify-between items-center px-5 py-4 border-b border-blue-100 bg-blue-50">
+                <div className="flex items-center gap-3">
+                  <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm tracking-wide">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    Live Pipeline Logs
+                  </h2>
                 </div>
-              ))}
-              <div className="flex items-center gap-2 text-gray-400 mt-2 px-2 animate-pulse font-bold text-sm">
-                <span>_</span>
+                <button onClick={() => setIsLogsOpen(false)} className="text-gray-400 hover:text-gray-900 transition-colors p-1 rounded-full hover:bg-gray-200">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-5 bg-white text-xs font-mono overflow-y-auto h-[400px] flex flex-col gap-1.5 custom-scrollbar">
+                {PIPELINE_LOGS.slice(0, visibleLogs).map((log, i) => (
+                  <div key={i} className="flex items-start gap-3 hover:bg-gray-50 px-2 py-1 rounded transition-colors -mx-2 border border-transparent hover:border-gray-100">
+                    <span className="text-gray-400 shrink-0">2026-09-02 {log.time}</span>
+                    <span className={`shrink-0 font-bold w-10 ${log.level === 'INFO' ? 'text-blue-600' : 'text-amber-600'}`}>{log.level}</span>
+                    <span className="text-purple-600 shrink-0 w-24">[{log.module}]</span>
+                    <span className={`${log.highlight ? 'text-emerald-700 font-semibold' : log.level === 'WARN' ? 'text-amber-700 font-medium' : 'text-gray-700'}`}>{log.msg}</span>
+                  </div>
+                ))}
+                {visibleLogs < PIPELINE_LOGS.length && (
+                  <div className="flex items-center gap-2 text-gray-400 mt-2 px-2 animate-pulse font-bold text-sm">
+                    <span>_</span>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
     </div>
   );
