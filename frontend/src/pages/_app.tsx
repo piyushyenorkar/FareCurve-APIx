@@ -2,6 +2,9 @@ import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import Sidebar from "@/components/Sidebar";
 import Head from "next/head";
+import { Poppins } from "next/font/google";
+
+const poppins = Poppins({ weight: ["400", "500", "600", "700", "800", "900"], subsets: ["latin"], variable: "--font-poppins" });
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -9,7 +12,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <Head>
         <title>FareCurve Dashboard</title>
       </Head>
-      <div className="min-h-screen bg-[#fafafa] flex font-sans text-gray-900">
+      <div className={`min-h-screen bg-[#fafafa] flex font-sans text-gray-900 ${poppins.variable}`} style={{ fontFamily: "var(--font-poppins)" }}>
         <Sidebar />
         <main className="flex-1 p-8 ml-64 overflow-y-auto relative z-10">
           {/* Background Aviation Elements */}

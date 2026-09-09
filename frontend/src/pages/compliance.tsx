@@ -17,6 +17,27 @@ export default function CompliancePage() {
   const allowed = sources.filter(s=>s.verdict==="ALLOW").length;
   const denied = sources.filter(s=>s.verdict==="DENY").length;
 
+  const getLogo = (name: string, type: string) => {
+    const norm = (name || "").toLowerCase();
+    const t = (type || "").toLowerCase();
+    if (t === "airline") {
+      if (norm.includes("indigo")) return "https://images.kiwi.com/airlines/32/6E.png";
+      if (norm.includes("air india") && !norm.includes("express")) return "https://images.kiwi.com/airlines/32/AI.png";
+      if (norm.includes("spicejet")) return "https://images.kiwi.com/airlines/32/SG.png";
+      if (norm.includes("akasa")) return "https://images.kiwi.com/airlines/32/QP.png";
+      if (norm.includes("express") || norm.includes("connect")) return "https://images.kiwi.com/airlines/32/IX.png";
+      if (norm.includes("vistara")) return "https://images.kiwi.com/airlines/32/UK.png";
+    } else if (t === "ota") {
+      if (norm.includes("yatra")) return "https://www.google.com/s2/favicons?domain=yatra.com&sz=64";
+      if (norm.includes("make") || norm.includes("mmt")) return "https://www.google.com/s2/favicons?domain=makemytrip.com&sz=64";
+      if (norm.includes("ease")) return "https://www.google.com/s2/favicons?domain=easemytrip.com&sz=64";
+      if (norm.includes("cleartrip")) return "https://www.google.com/s2/favicons?domain=cleartrip.com&sz=64";
+      if (norm.includes("ixigo")) return "https://www.google.com/s2/favicons?domain=ixigo.com&sz=64";
+      if (norm.includes("goibibo")) return "https://www.google.com/s2/favicons?domain=goibibo.com&sz=64";
+    }
+    return null;
+  };
+
   return (
     <div>
       <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
@@ -50,25 +71,38 @@ export default function CompliancePage() {
           <div className="h-[200px] bg-gray-50 rounded-xl w-full mt-4"></div>
         </div>
       ) : (
-        <div className="glass-card">
-          <table className="data-table">
+        <div className="glass-card" style={{ overflowX: "auto" }}>
+          <table className="data-table w-full text-left" style={{ minWidth: "1000px" }}>
             <thead><tr>
-              <th>Source</th><th>Type</th><th>URL</th><th>Verdict</th><th>Governing Rule</th><th>Status</th>
+              <th style={{width: "20%"}}>Source</th>
+              <th style={{width: "10%"}}>Type</th>
+              <th style={{width: "20%"}}>URL</th>
+              <th style={{width: "12%"}}>Verdict</th>
+              <th style={{width: "28%"}}>Governing Rule</th>
+              <th style={{width: "10%"}}>Status</th>
             </tr></thead>
             <tbody>
               {sources.map(s=>(
                 <tr key={s.slug}>
-                  <td style={{fontWeight:700}}>{s.name}</td>
+                  <td style={{fontWeight:700}}>
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const logoUrl = getLogo(s.name, s.type);
+                        return logoUrl ? <img src={logoUrl} alt="" className="w-5 h-5 object-contain" /> : null;
+                      })()}
+                      {s.name}
+                    </div>
+                  </td>
                   <td><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold" style={{background:"rgba(59,130,246,0.12)",color:"#60a5fa"}}>{s.type?.toUpperCase()}</span></td>
-                  <td style={{color:"var(--accent-cyan)"}}>{s.url}</td>
+                  <td style={{color:"var(--accent-cyan)", fontSize:"0.85rem"}}>{s.url}</td>
                   <td><span className={"inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold " + (s.verdict === "ALLOW" ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600")}>
                     {s.verdict==="ALLOW"?<ShieldCheck size={12} style={{marginRight:4}}/>:<ShieldX size={12} style={{marginRight:4}}/>}
                     {s.verdict}
                   </span></td>
-                  <td style={{fontSize:"0.8rem",color:"var(--text-secondary)"}}>{s.rule}</td>
+                  <td style={{fontSize:"0.8rem",color:"var(--text-secondary)", lineHeight: "1.4", padding: "0.5rem"}}>{s.rule}</td>
                   <td>{s.verdict==="DENY"
-                    ? <span style={{color:"var(--accent-violet)",fontSize:"0.8rem"}}>Reconstructed</span>
-                    : <span style={{color:"var(--accent-emerald)",fontSize:"0.8rem"}}>Live Scraping</span>
+                    ? <span style={{color:"var(--accent-violet)",fontSize:"0.8rem", fontWeight:600}}>Reconstructed</span>
+                    : <span style={{color:"var(--accent-emerald)",fontSize:"0.8rem", fontWeight:600}}>Live Scraping</span>
                   }</td>
                 </tr>
               ))}

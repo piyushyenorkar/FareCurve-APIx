@@ -148,5 +148,19 @@ def status():
     console.print(table)
 
 
+
+
+@app.command()
+def backfill_data(
+    days: int = typer.Option(30, help="Number of days to backfill"),
+):
+    """Generate historical data for demo charts (30 days of realistic fare data)."""
+    from apix.pipeline.backfill import backfill
+    console.print(f"[bold cyan]Backfilling {days} days of historical data...[/]")
+    result = backfill(days=days)
+    console.print(f"[bold green]Backfill complete![/]")
+    console.print(f"  Days: {result['days']}")
+    console.print(f"  Total quotes: {result['total_quotes']}")
+
 if __name__ == "__main__":
     app()

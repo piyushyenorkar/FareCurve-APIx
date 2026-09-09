@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from apix.config import settings
-from apix.api.routes import index, fares, forecast, anomalies, quality, reference
+from apix.api.routes import index, fares, forecast, anomalies, quality, reference, ai
 
 app = FastAPI(
     title="APIx - Real-time Airfare Price Index for India",
@@ -30,6 +30,7 @@ app.include_router(forecast.router, prefix="/api/v1", tags=["Forecast"])
 app.include_router(anomalies.router, prefix="/api/v1", tags=["Anomalies"])
 app.include_router(quality.router, prefix="/api/v1", tags=["Data Quality"])
 app.include_router(reference.router, prefix="/api/v1", tags=["Reference Data"])
+app.include_router(ai.router, prefix="/api/v1", tags=["AI"])
 
 
 @app.get("/", tags=["Health"])
