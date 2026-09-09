@@ -111,7 +111,7 @@ def derive_route_weights(
             p_d = pax.get(route.destination)
             if not p_o or not p_d:
                 continue
-            raw = (p_o * p_d) / (distance**distance_exponent)
+            raw = ((p_o * p_d) / (distance**distance_exponent)) / 1e6
             basis = "gravity_from_airport_pax"
             annual = None
             src = {pax_provenance.get(route.origin), pax_provenance.get(route.destination)}
