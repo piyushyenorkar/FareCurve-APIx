@@ -89,3 +89,21 @@ body {
 .data-table tbody tr:last-child td {
   border-bottom: none;
 }
+
+h1 {
+  font-family: var(--font-poppins), sans-serif !important;
+}
+
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 2px;
+}
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 10px 0; /* Keeps scrollbar inside and away from rounded corners */
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #94a3b8;
+  border-radius: 999px;
+}
+
