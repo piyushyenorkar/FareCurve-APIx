@@ -1,268 +1,299 @@
 import { useState, useEffect, useMemo } from "react";
+import { api } from "../lib/api";
+import dynamic from "next/dynamic";
 import { InfoTooltip } from "../components/InfoTooltip";
-import { Calendar, TrendingDown, TrendingUp, Plane } from "lucide-react";
+import { TrendingUp, TrendingDown, Plane, MapPin } from "lucide-react";
 
-const ROUTES = ["DEL-BOM", "DEL-BLR", "BOM-BLR", "DEL-CCU", "BLR-HYD", "MAA-DEL"];
+// Leaflet must be loaded client-side only (no SSR)
+const MapContainer = dynamic(() => import("react-leaflet").then(m => m.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import("react-leaflet").then(m => m.TileLayer), { ssr: false });
+const CircleMarker = dynamic(() => import("react-leaflet").then(m => m.CircleMarker), { ssr: false });
+const Polyline = dynamic(() => import("react-leaflet").then(m => m.Polyline), { ssr: false });
+const LeafletTooltip = dynamic(() => import("react-leaflet").then(m => m.Tooltip), { ssr: false });
 
-// Helper to get next N dates formatted as "SEP 6 · SAT"
-const getNextNDates = (n: number) => {
-  const dates = [];
-  const today = new Date();
-  for (let i = 0; i < n; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    const datePart = d.toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase();
-    const dayPart = d.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
-    dates.push(`${datePart} · ${dayPart}`);
-  }
-  return dates;
+// Major Indian airports with geographic coordinates
+const AIRPORTS: Record<string, { lat: number; lng: number; city: string }> = {
+  DEL: { lat: 28.5562, lng: 77.1000, city: "Delhi" },
+  BOM: { lat: 19.0896, lng: 72.8656, city: "Mumbai" },
+  BLR: { lat: 13.1986, lng: 77.7066, city: "Bengaluru" },
+  HYD: { lat: 17.2403, lng: 78.4294, city: "Hyderabad" },
+  CCU: { lat: 22.6520, lng: 88.4463, city: "Kolkata" },
+  MAA: { lat: 12.9941, lng: 80.1709, city: "Chennai" },
+  PNQ: { lat: 18.5822, lng: 73.9197, city: "Pune" },
+  AMD: { lat: 23.0225, lng: 72.5714, city: "Ahmedabad" },
+  GOI: { lat: 15.3808, lng: 73.8314, city: "Goa" },
+  LKO: { lat: 26.7606, lng: 80.8893, city: "Lucknow" },
+  SXR: { lat: 33.9871, lng: 74.7742, city: "Srinagar" },
+  JAI: { lat: 26.8242, lng: 75.8122, city: "Jaipur" },
 };
 
-// We generate 30 days of data once
-const ALL_DATES = getNextNDates(30);
-
-const generateConcept1Data = () => {
-  const basePrices: Record<string, number> = {
-    "DEL-BOM": 4800,
-    "DEL-BLR": 6500,
-    "BOM-BLR": 3500,
-    "DEL-CCU": 5500,
-    "BLR-HYD": 2800,
-    "MAA-DEL": 6200,
-  };
-
-  const data: Record<string, Record<string, number>> = {};
-
-  ROUTES.forEach(route => {
-    data[route] = {};
-    const base = basePrices[route];
-
-    ALL_DATES.forEach((dateStr, i) => {
-      let price = base;
-      if (i < 3) price *= 1.4; // Last minute
-      else if (i > 10 && i < 20) price *= 0.85; // Advance sweet spot
-      else if (i >= 20) price *= 0.9; // Far advance
-
-      // Weekend surge (check if string contains SAT or SUN)
-      if (dateStr.includes("SAT") || dateStr.includes("SUN") || dateStr.includes("FRI")) {
-        price *= 1.25;
-      }
-
-      price += Math.sin(i) * 500;
-      price += Math.random() * 400 - 200;
-
-      data[route][dateStr] = Math.round(price);
-    });
-  });
-
-  return data;
+const ROUTE_WEIGHTS: Record<string, number> = {
+  "DEL-BOM": 9, "BOM-BLR": 7, "DEL-BLR": 7, "DEL-CCU": 5, "BLR-HYD": 5, 
+  "MAA-DEL": 5, "DEL-HYD": 5, "BOM-CCU": 4, "DEL-PNQ": 4, "DEL-AMD": 4,
+  "BOM-GOI": 4, "DEL-GOI": 4, "DEL-LKO": 3, "DEL-SXR": 2, "DEL-JAI": 3, "DEL-MAA": 4
 };
 
-export default function FareMatrixPage() {
-  const [data, setData] = useState<Record<string, Record<string, number>> | null>(null);
+const ROUTE_BASKET = [
+  "DEL-BOM","DEL-BLR","BOM-BLR","DEL-CCU","BLR-HYD","MAA-DEL",
+  "DEL-HYD","BOM-CCU","DEL-PNQ","DEL-AMD","BOM-GOI","DEL-GOI",
+  "DEL-LKO","DEL-SXR","DEL-JAI","DEL-MAA"
+];
+
+function getColor(index: number): string {
+  if (index < 95) return "#10b981";
+  if (index < 105) return "#3b82f6";
+  if (index < 115) return "#f59e0b";
+  if (index < 130) return "#f97316";
+  return "#ef4444";
+}
+
+function getArcMidpoint(a: [number, number], b: [number, number], offset = 0.08): [number, number] {
+  const mid: [number, number] = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const dx = b[1] - a[1];
+  const dy = b[0] - a[0];
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len === 0) return mid;
+  mid[0] += (-dx / len) * offset * len;
+  mid[1] += (dy / len) * offset * len;
+  return mid;
+}
+
+export default function HeatmapPage() {
+  const [routeData, setRouteData] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
-  const [timeFilter, setTimeFilter] = useState<string>("14D");
+  const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
+  const [isBaseFare, setIsBaseFare] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setData(generateConcept1Data());
+    import("leaflet/dist/leaflet.css");
+    Promise.all(
+      ROUTE_BASKET.map(async (rk) => {
+        const [o, d] = rk.split("-");
+        try {
+          const data = await api.indexRoute(o, d);
+          const latest = Array.isArray(data) && data.length > 0 ? data[data.length - 1] : null;
+          return { route: rk, value: latest?.value || null, mean_fare: latest?.mean_fare || null, observations: latest?.observations || 0 };
+        } catch {
+          return { route: rk, value: null, mean_fare: null, observations: 0 };
+        }
+      })
+    ).then((results) => {
+      const map: Record<string, any> = {};
+      results.forEach((r) => { map[r.route] = r; });
+      setRouteData(map);
       setLoading(false);
-    }, 500);
+    });
   }, []);
 
-  const visibleDates = useMemo(() => {
-    const days = timeFilter === "30D" ? 30 : 14;
-    return ALL_DATES.slice(0, days);
-  }, [timeFilter]);
-
-  // Determine cell styling based on 3 distinct tiers
-  const getCellStyles = (price: number, min: number, max: number) => {
-    const ratio = (price - min) / (max - min);
-    
-    // 3 Discrete Tiers using Pastel Backgrounds and Dark Text
-    if (ratio <= 0.25) {
-      // Best Deal (Bottom 25%) - Pastel Green
-      return { bg: "#d1fae5", text: "#064e3b" }; // emerald-100 and emerald-900
-    } else if (ratio >= 0.75) {
-      // Surge/Expensive (Top 25%) - Pastel Red
-      return { bg: "#ffe4e6", text: "#881337" }; // rose-100 and rose-900
-    } else {
-      // Average/Normal (Middle 50%) - Pastel Yellow
-      return { bg: "#fef3c7", text: "#78350f" }; // amber-100 and amber-900
+  
+  const displayData = useMemo(() => {
+    const newData: Record<string, any> = {};
+    for (const route of Object.keys(routeData)) {
+      const data = routeData[route];
+      newData[route] = {
+        ...data,
+        value: data.value ? (isBaseFare ? Number((data.value * 0.82).toFixed(1)) : data.value) : null,
+        mean_fare: data.mean_fare ? (isBaseFare ? Math.round(data.mean_fare * 0.82) : data.mean_fare) : null
+      };
     }
-  };
+    return newData;
+  }, [routeData, isBaseFare]);
+
+  const stats = useMemo(() => {
+    const values = Object.values(displayData).filter(r => r.value).map(r => r.value);
+    if (values.length === 0) return { avg: "—", min: "—", max: "—", surge: 0, cheap: 0 };
+    return {
+      avg: (values.reduce((a: number, b: number) => a + b, 0) / values.length).toFixed(1),
+      min: Math.min(...values).toFixed(1),
+      max: Math.max(...values).toFixed(1),
+      surge: values.filter((v: number) => v > 120).length,
+      cheap: values.filter((v: number) => v < 100).length,
+    };
+  }, [displayData]);
 
   return (
     <div>
-      <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">Fare Matrix <InfoTooltip text="Visualizes lowest available fares across dates and routes. Fares are divided into 3 distinct tiers: Best Deal, Average, and Surge Price." /></span>
-      </h1>
-      <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
-        Identify the cheapest days to fly across major Indian sectors at a glance.
-      </p>
-
-      <div className="glass-card" style={{ padding: "1.5rem 2rem", marginBottom: "1.5rem", overflowX: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", minWidth: "800px" }}>
-          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Calendar size={20} className="text-blue-500" />
-            {timeFilter === "30D" ? "30-Day Outlook" : "14-Day Outlook"}
-          </h2>
-          
-          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-            {/* Legend for the 3 tiers */}
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <div style={{ width: 12, height: 12, borderRadius: 2, background: "#d1fae5", border: "1px solid #059669" }}></div>
-                <span>Best Deal</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <div style={{ width: 12, height: 12, borderRadius: 2, background: "#fef3c7", border: "1px solid #d97706" }}></div>
-                <span>Average</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <div style={{ width: 12, height: 12, borderRadius: 2, background: "#ffe4e6", border: "1px solid #e11d48" }}></div>
-                <span>Surge Price</span>
-              </div>
-            </div>
-
-            {/* Reusing existing TimeFilter component for 14D/30D toggle */}
-            <div className="flex bg-gray-100/50 p-1 rounded-full border border-gray-200 shadow-inner">
-              {['14D', '30D'].map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTimeFilter(t)}
-                  className={`px-3 py-1 text-[11px] font-bold rounded-full transition-all ${
-                    timeFilter === t
-                      ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
-                      : 'text-gray-500 hover:text-gray-800 hover:bg-gray-200/50'
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+      
+      <div className="flex justify-between items-end mb-8">
+        <div>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, marginBottom: "0.25rem" }}>
+            <span className="gradient-text">Sector Heatmap <InfoTooltip text="Geographic visualization of route-level price indices across India. Color shows how current fares compare to base period. Green = cheap, Red = surge." /></span>
+          </h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
+            Live route indices overlaid on India's aviation network — powered by real pipeline data
+          </p>
+        </div>
+        
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Analysis Mode</span>
+          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm">
+            <span className={`text-sm font-semibold transition-colors ${!isBaseFare ? 'text-blue-600' : 'text-gray-400'}`}>Gross Fare</span>
+            <button 
+              onClick={() => setIsBaseFare(!isBaseFare)}
+              className={`w-12 h-6 rounded-full relative transition-colors duration-300 ${!isBaseFare ? 'bg-blue-600' : 'bg-emerald-500'}`}
+            >
+              <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm ${isBaseFare ? 'translate-x-6' : 'translate-x-0'}`}></div>
+            </button>
+            <span className={`text-sm font-semibold transition-colors ${isBaseFare ? 'text-emerald-600' : 'text-gray-400'}`}>Base Fare Only</span>
           </div>
         </div>
+      </div>
 
-        {loading || !data ? (
-          <div className="animate-pulse flex flex-col gap-2 w-full">
-            {[1,2,3,4,5,6].map(i => (
-              <div key={i} className="h-12 bg-gray-100 rounded-lg w-full"></div>
-            ))}
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "1rem", marginBottom: "1.5rem" }}>
+        {[
+          { label: "Avg Index", value: stats.avg, color: "#3b82f6" },
+          { label: "Cheapest", value: stats.min, color: "#10b981" },
+          { label: "Most Expensive", value: stats.max, color: "#ef4444" },
+          { label: "Surge Routes", value: stats.surge, color: "#f97316" },
+          { label: "Below Base", value: stats.cheap, color: "#10b981" },
+        ].map((s) => (
+          <div key={s.label} className="glass-card" style={{ textAlign: "center", padding: "1.25rem" }}>
+            <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)" }}>{s.label}</div>
+            <div style={{ fontSize: "1.75rem", fontWeight: 900, color: s.color }}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="glass-card" style={{ padding: "0", overflow: "hidden", borderRadius: "16px", marginBottom: "1.5rem" }}>
+        {loading ? (
+          <div className="animate-pulse" style={{ height: "550px", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ color: "#94a3b8", fontSize: "0.9rem", fontWeight: 600 }}>Loading route data...</div>
           </div>
         ) : (
-          <div style={{ overflowX: "auto", paddingBottom: "10px" }}>
-            <table style={{ borderCollapse: "separate", borderSpacing: "3px", width: "100%", minWidth: "900px" }}>
-              <thead>
-                <tr>
-                  <th style={{ padding: "12px 10px", textAlign: "left", width: "120px", color: "#0f172a", fontSize: "0.85rem", fontWeight: 800, textTransform: "uppercase", position: "sticky", left: 0, backgroundColor: "#fff", zIndex: 10, borderBottom: "1px solid #f1f5f9", whiteSpace: "nowrap" }}>Route</th>
-                  {visibleDates.map(dateStr => {
-                    const [datePart, dayPart] = dateStr.split(" · ");
-                    return (
-                      <th key={dateStr} style={{ padding: "10px 4px", textAlign: "center", borderBottom: "1px solid #f1f5f9", minWidth: "95px" }}>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                          <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "#0f172a" }}>{datePart}</span>
-                          <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--text-muted)" }}>{dayPart}</span>
+          <div style={{ height: "550px", width: "100%" }}>
+            <MapContainer
+              center={[22.5, 79.5] as any}
+              zoom={5}
+              style={{ height: "100%", width: "100%", borderRadius: "16px" }}
+              zoomControl={true}
+              scrollWheelZoom={true}
+            >
+              <TileLayer
+                attribution='&copy; CARTO'
+                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              />
+              {ROUTE_BASKET.map((rk) => {
+                const [o, d] = rk.split("-");
+                const ao = AIRPORTS[o], ad = AIRPORTS[d];
+                if (!ao || !ad) return null;
+                const data = displayData[rk];
+                const indexVal = data?.value || 100;
+                const color = getColor(indexVal);
+                const start: [number, number] = [ao.lat, ao.lng];
+                const end: [number, number] = [ad.lat, ad.lng];
+                const mid = getArcMidpoint(start, end, 0.15);
+                return (
+                  <Polyline
+                    key={rk}
+                    positions={[start, mid, end] as any}
+                    pathOptions={{
+                      color, weight: selectedRoute === rk ? (ROUTE_WEIGHTS[rk] + 3) : ROUTE_WEIGHTS[rk],
+                      opacity: selectedRoute && selectedRoute !== rk ? 0.2 : 0.8,
+                      dashArray: data?.value ? undefined : "6 4",
+                    }}
+                    eventHandlers={{ click: () => setSelectedRoute(selectedRoute === rk ? null : rk) }}
+                  >
+                    <LeafletTooltip sticky>
+                      <div style={{ fontFamily: "Inter, sans-serif", minWidth: "180px" }}>
+                        <div style={{ fontWeight: 800, fontSize: "14px", marginBottom: "6px" }}>{rk}</div>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "3px" }}>
+                          <span style={{ color: "#64748b" }}>Index:</span>
+                          <span style={{ fontWeight: 700, color }}>{indexVal.toFixed(1)}</span>
                         </div>
-                      </th>
-                    );
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {ROUTES.map((route) => {
-                  // Calculate min/max for THIS route to normalize colors over the VISIBLE range
-                  const prices = visibleDates.map(d => data[route][d]);
-                  const min = Math.min(...prices);
-                  const max = Math.max(...prices);
-
-                  return (
-                    <tr key={route}>
-                      <td style={{ padding: "12px 10px", position: "sticky", left: 0, backgroundColor: "#fff", zIndex: 10, borderRight: "2px solid rgba(0,0,0,0.05)", whiteSpace: "nowrap" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 700, color: "#1e293b", fontSize: "0.9rem" }}>
-                          <Plane size={16} style={{ color: "#64748b" }} />
-                          {route}
+                        {data?.mean_fare && (
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "3px" }}>
+                            <span style={{ color: "#64748b" }}>Mean Fare:</span>
+                            <span style={{ fontWeight: 700 }}>₹{Math.round(data.mean_fare).toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}>
+                          <span style={{ color: "#64748b" }}>Observations:</span>
+                          <span style={{ fontWeight: 700 }}>{data?.observations || 0}</span>
                         </div>
-                      </td>
-                      {visibleDates.map(dateStr => {
-                        const price = data[route][dateStr];
-                        const { bg, text } = getCellStyles(price, min, max);
-                        
-                        const isCheapest = price === min;
-                        const isMostExpensive = price === max;
-                        
-                        // Accessibility: Lowest gets Green Ring, Highest gets Red Ring
-                        let boxShadow = "inset 0 0 0 1px rgba(0,0,0,0.05)";
-                        if (isCheapest) {
-                          boxShadow = "inset 0 0 0 2px #fff, 0 0 0 2px #10b981"; // Green ring
-                        } else if (isMostExpensive) {
-                          boxShadow = "inset 0 0 0 2px #fff, 0 0 0 2px #f43f5e"; // Red ring
-                        }
-                        
-                        return (
-                          <td key={`${route}-${dateStr}`} style={{ padding: "0" }}>
-                            <div 
-                              style={{ 
-                                background: bg,
-                                color: text,
-                                margin: "2px",
-                                padding: "12px 8px",
-                                borderRadius: "8px",
-                                textAlign: "center",
-                                fontWeight: 700,
-                                fontSize: "0.8rem",
-                                transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                                cursor: "pointer",
-                                boxShadow: boxShadow,
-                                position: "relative"
-                              }}
-                              className="hover:scale-[1.1] hover:shadow-lg hover:z-20 relative group"
-                            >
-                              ₹{price.toLocaleString()}
-                              {/* Custom Tooltip */}
-                              <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap z-30 pointer-events-none">
-                                {route} on {dateStr}
-                              </div>
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                    </LeafletTooltip>
+                  </Polyline>
+                );
+              })}
+              {Object.entries(AIRPORTS).map(([code, ap]) => (
+                <CircleMarker
+                  key={code}
+                  center={[ap.lat, ap.lng] as any}
+                  radius={8}
+                  pathOptions={{ fillColor: "#1e293b", fillOpacity: 0.9, color: "#ffffff", weight: 2 }}
+                >
+                  <LeafletTooltip permanent direction="top" offset={[0, -12] as any}>
+                    <span style={{ fontWeight: 700, fontSize: "11px", fontFamily: "Inter, sans-serif" }}>{code}</span>
+                  </LeafletTooltip>
+                </CircleMarker>
+              ))}
+            </MapContainer>
           </div>
         )}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
-        <div className="glass-card flex gap-5 items-center" style={{ padding: "1.5rem 2rem" }}>
-          <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 shadow-sm">
-            <TrendingDown size={28} className="text-emerald-600" />
-          </div>
-          <div>
-            <h3 style={{ fontWeight: 800, fontSize: "1.1rem", color: "#0f172a", marginBottom: "0.35rem" }}>Identify Price Drops</h3>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-              The matrix highlights the absolute lowest fare detected for a specific route with a bold <span className="font-bold text-emerald-600">green ring</span>, making it instantly recognizable even for colorblind users.
-            </p>
+            <div className="glass-card" style={{ padding: "1.25rem 2rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0f172a", textTransform: "uppercase" }}>Index Legend:</span>
+            {[
+              { label: "< 95 (Cheap)", color: "#10b981" },
+              { label: "95-105 (Base)", color: "#3b82f6" },
+              { label: "105-115 (Moderate)", color: "#f59e0b" },
+              { label: "115-130 (High)", color: "#f97316" },
+              { label: "> 130 (Surge)", color: "#ef4444" },
+            ].map((item) => (
+              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ width: 14, height: 4, borderRadius: 2, background: item.color }}></div>
+                <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>{item.label}</span>
+              </div>
+            ))}
           </div>
         </div>
-        
-        <div className="glass-card flex gap-5 items-center" style={{ padding: "1.5rem 2rem" }}>
-          <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 shadow-sm">
-            <TrendingUp size={28} className="text-rose-600" />
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginTop: "1rem", paddingTop: "1rem", borderTop: "1px dashed rgba(0,0,0,0.1)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0f172a", textTransform: "uppercase" }}>DGCA Traffic Volume (Thickness):</span>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: 24, height: 9, borderRadius: 4, background: "#94a3b8" }}></div>
+              <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>High (e.g. DEL-BOM)</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: 24, height: 5, borderRadius: 3, background: "#94a3b8" }}></div>
+              <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>Medium</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: 24, height: 2, borderRadius: 1, background: "#94a3b8" }}></div>
+              <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>Low (e.g. DEL-SXR)</span>
+            </div>
           </div>
-          <div>
-            <h3 style={{ fontWeight: 800, fontSize: "1.1rem", color: "#0f172a", marginBottom: "0.35rem" }}>Avoid Surge Pricing</h3>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-              The highest surge prices are marked with a <span className="font-bold text-rose-600">red ring</span>. These commonly fall on weekends and festivals, indicating low elasticity.
-            </p>
-          </div>
+          <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Click a route · Dashed = no data</div>
         </div>
       </div>
 
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", marginTop: "1.5rem" }}>
+        {ROUTE_BASKET.map((rk) => {
+          const data = displayData[rk];
+          const val = data?.value || 0;
+          const color = getColor(val);
+          const isSelected = selectedRoute === rk;
+          return (
+            <div key={rk} onClick={() => setSelectedRoute(isSelected ? null : rk)} className="glass-card"
+              style={{ padding: "1rem 1.25rem", cursor: "pointer", border: isSelected ? `2px solid ${color}` : "1px solid #e2e8f0", transition: "all 0.2s" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <span style={{ fontWeight: 800, fontSize: "0.95rem", color: "#0f172a" }}>{rk}</span>
+                {val > 100 ? <TrendingUp size={16} style={{ color }} /> : <TrendingDown size={16} style={{ color }} />}
+              </div>
+              <div style={{ fontSize: "1.5rem", fontWeight: 900, color }}>{val ? val.toFixed(1) : "—"}</div>
+              <div style={{ fontSize: "0.7rem", color: "#94a3b8", marginTop: "0.25rem" }}>
+                {data?.mean_fare ? `₹${Math.round(data.mean_fare).toLocaleString()} avg` : "Awaiting data"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

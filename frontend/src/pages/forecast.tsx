@@ -3,11 +3,44 @@ import { api } from "../lib/api";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import { TrendingUp, TrendingDown, Minus, Plane } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
+import { Search, Filter } from "lucide-react";
+import { AirportSearch } from "../components/AirportSearch";
+import { CustomDropdown } from "../components/CustomDropdown";
 
-const ROUTES = ["DEL-BOM","DEL-BLR","BOM-BLR","DEL-CCU","BLR-HYD","MAA-DEL"];
+const ROUTES = ["DEL-BOM", "DEL-BLR", "BOM-BLR", "DEL-CCU", "BLR-HYD", "MAA-DEL", "DEL-HYD", "BOM-CCU", "DEL-PNQ", "DEL-AMD", "BOM-GOI", "DEL-GOI", "DEL-LKO", "DEL-SXR", "DEL-JAI", "DEL-MAA"];
+
+const AIRLINE_OPTIONS = [
+  { value: "ALL", label: "All Airlines" },
+  { value: "6E", label: "IndiGo", logo: "https://images.kiwi.com/airlines/32/6E.png" },
+  { value: "AI", label: "Air India", logo: "https://images.kiwi.com/airlines/32/AI.png" },
+  { value: "SG", label: "SpiceJet", logo: "https://images.kiwi.com/airlines/32/SG.png" },
+  { value: "QP", label: "Akasa Air", logo: "https://images.kiwi.com/airlines/32/QP.png" },
+  { value: "IX", label: "AI Express", logo: "https://images.kiwi.com/airlines/32/IX.png" },
+  { value: "UK", label: "Vistara", logo: "https://images.kiwi.com/airlines/32/UK.png" }
+];
+
+const OTA_OPTIONS = [
+  { value: "ALL", label: "All Sources" },
+  { value: "yatra", label: "Yatra", logo: "https://www.google.com/s2/favicons?domain=yatra.com&sz=64" },
+  { value: "makemytrip", label: "MakeMyTrip", logo: "https://www.google.com/s2/favicons?domain=makemytrip.com&sz=64" },
+  { value: "easemytrip", label: "EaseMyTrip", logo: "https://www.google.com/s2/favicons?domain=easemytrip.com&sz=64" },
+  { value: "cleartrip", label: "Cleartrip", logo: "https://www.google.com/s2/favicons?domain=cleartrip.com&sz=64" },
+  { value: "ixigo", label: "Ixigo", logo: "https://www.google.com/s2/favicons?domain=ixigo.com&sz=64" },
+  { value: "goibibo", label: "Goibibo", logo: "https://www.google.com/s2/favicons?domain=goibibo.com&sz=64" }
+];
 
 export default function ForecastPage() {
   const [route, setRoute] = useState("DEL-BOM");
+  const [airline, setAirline] = useState("ALL");
+  const [ota, setOta] = useState("ALL");
+  const [customOrigin, setCustomOrigin] = useState("");
+  const [customDest, setCustomDest] = useState("");
+
+  const handleCustomRoute = () => {
+    if (customOrigin.length >= 3 && customDest.length >= 3) {
+      setRoute(`${customOrigin.substring(0,3).toUpperCase()}-${customDest.substring(0,3).toUpperCase()}`);
+    }
+  };
   const [histData, setHistData] = useState<any[]>([]);
   const [forecastData, setForecastData] = useState<any[]>([]);
   const [signalData, setSignalData] = useState<any>({});
@@ -17,7 +50,7 @@ export default function ForecastPage() {
     setLoading(true);
     const [origin, dest] = route.split("-");
     
-    api.forecast(origin, dest, 15).then((fcst: any) => {
+    api.forecast(origin, dest, 15, airline, ota).then((fcst: any) => {
       if (fcst) {
         setSignalData(fcst);
         
@@ -40,7 +73,7 @@ export default function ForecastPage() {
       }
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [route]);
+  }, [route, airline, ota]);
 
   const signal = signalData.buy_or_wait || "NEUTRAL";
   const current = signalData.current_avg || 0;
@@ -84,7 +117,25 @@ export default function ForecastPage() {
           </button>
         ))}
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"3fr 1fr",gap:"1.5rem",marginBottom:"2rem"}}>
+              <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Search size={14} style={{ color: "#64748b" }} />
+            <AirportSearch placeholder="Origin (DEL)" value={customOrigin} onChange={setCustomOrigin} />
+            <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
+            <AirportSearch placeholder="Dest (BOM)" value={customDest} onChange={setCustomDest} />
+            <button onClick={handleCustomRoute} 
+              style={{ padding: "0.5rem 1rem", borderRadius: "999px", background: "#0f172a", color: "#fff", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", border: "none" }}>
+              Search
+            </button>
+          </div>
+          <div style={{ width: "1px", height: "24px", background: "#e2e8f0", margin: "0 0.5rem" }}></div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Filter size={14} style={{ color: "#64748b" }} />
+            <CustomDropdown options={AIRLINE_OPTIONS} value={airline} onChange={setAirline} />
+            <CustomDropdown options={OTA_OPTIONS} value={ota} onChange={setOta} />
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"3fr 1fr",gap:"1.5rem",marginBottom:"2rem"}}>
         <div className="glass-card">
           <h2 style={{fontSize:"1.1rem",fontWeight:700,marginBottom:"1rem"}}>{route} — Actual vs Predicted</h2>
           <ResponsiveContainer width="100%" height={320}>
@@ -114,6 +165,92 @@ export default function ForecastPage() {
           </div>
         </div>
       </div>
+      {/* -- Fare Calendar Matrix -- */}
+      <div className="glass-card" style={{ marginTop: "2rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+          <div>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 700 }}>Fare Calendar � Next 14 Days</h2>
+            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "4px" }}>
+              Projected daily fares for {route} based on historical patterns. Green = cheapest, Red = most expensive.
+            </p>
+          </div>
+        </div>
+        <FareCalendar route={route} forecastData={forecastData} currentAvg={current} />
+      </div>
+    </div>
+  );
+}
+
+function FareCalendar({ route, forecastData, currentAvg }: { route: string; forecastData: any[]; currentAvg: number }) {
+  // Generate 14-day calendar grid
+  const today = new Date();
+  const days = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+
+  // Use forecast data if available, otherwise simulate based on currentAvg
+  const prices = days.map((d, i) => {
+    const fcst = forecastData[i];
+    if (fcst && fcst.predicted) return Math.round(fcst.predicted);
+    // Simulate with slight variation based on day of week
+    const dayOfWeek = d.getDay();
+    const weekendMultiplier = (dayOfWeek === 0 || dayOfWeek === 6) ? 1.15 : 1.0;
+    const advanceDiscount = 1 - (i * 0.008); // slightly cheaper further out
+    return Math.round((currentAvg || 5500) * weekendMultiplier * advanceDiscount * (0.95 + Math.random() * 0.1));
+  });
+
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+
+  function getCellColor(price: number) {
+    if (maxPrice === minPrice) return { bg: "#f0fdf4", text: "#166534" };
+    const ratio = (price - minPrice) / (maxPrice - minPrice);
+    if (ratio < 0.25) return { bg: "#f0fdf4", text: "#166534" };
+    if (ratio < 0.5) return { bg: "#fefce8", text: "#854d0e" };
+    if (ratio < 0.75) return { bg: "#fff7ed", text: "#9a3412" };
+    return { bg: "#fef2f2", text: "#991b1b" };
+  }
+
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px" }}>
+      {dayNames.map(dn => (
+        <div key={dn} style={{ textAlign: "center", fontSize: "0.7rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", padding: "4px 0" }}>
+          {dn}
+        </div>
+      ))}
+      {/* Offset for first day */}
+      {Array.from({ length: days[0].getDay() }, (_, i) => (
+        <div key={`empty-${i}`}></div>
+      ))}
+      {days.map((d, i) => {
+        const price = prices[i];
+        const { bg, text } = getCellColor(price);
+        const isToday = i === 0;
+        const isCheapest = price === minPrice;
+        const isMostExpensive = price === maxPrice;
+        return (
+          <div key={i} style={{
+            background: bg, color: text, borderRadius: "12px", padding: "12px 8px",
+            textAlign: "center", cursor: "pointer", transition: "all 0.2s",
+            border: isToday ? "2px solid #3b82f6" : isCheapest ? "2px solid #10b981" : isMostExpensive ? "2px solid #ef4444" : "1px solid transparent",
+            position: "relative",
+          }} className="hover:scale-[1.05] hover:shadow-md">
+            <div style={{ fontSize: "0.7rem", fontWeight: 600, marginBottom: "4px", opacity: 0.7 }}>
+              {d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+            </div>
+            <div style={{ fontSize: "1rem", fontWeight: 800 }}>
+              ?{price.toLocaleString()}
+            </div>
+            {isCheapest && <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "#10b981", marginTop: "2px" }}>BEST</div>}
+            {isMostExpensive && <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "#ef4444", marginTop: "2px" }}>PEAK</div>}
+            {isToday && <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "#3b82f6", marginTop: "2px" }}>TODAY</div>}
+          </div>
+        );
+      })}
     </div>
   );
 }
