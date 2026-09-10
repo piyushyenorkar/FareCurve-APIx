@@ -51,11 +51,11 @@ export default function QualityPage() {
               </div>
               <div className="glass-card" style={{textAlign:"center"}}>
                 <div style={{fontSize:"0.7rem",fontWeight:700,textTransform:"uppercase",color:"var(--text-muted)"}}>Live Obs</div>
-                <div style={{fontSize:"2rem",fontWeight:800}}>{current.observed_data_points || 0}</div>
+                <div style={{fontSize:"2rem",fontWeight:800}}>{current.live || 0}</div>
               </div>
               <div className="glass-card" style={{textAlign:"center"}}>
                 <div style={{fontSize:"0.7rem",fontWeight:700,textTransform:"uppercase",color:"var(--text-muted)"}}>Reconstructed</div>
-                <div style={{fontSize:"2rem",fontWeight:800,color:"#8b5cf6"}}>{current.reconstructed_data_points || 0}</div>
+                <div style={{fontSize:"2rem",fontWeight:800,color:"#8b5cf6"}}>{current.reconstructed || 0}</div>
               </div>
             </div>
           )}
@@ -65,7 +65,7 @@ export default function QualityPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={history}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
-                  <XAxis dataKey="log_date" tick={{fill:"#64748b",fontSize:10}} tickFormatter={(v:string)=>v.slice(5)}/>
+                  <XAxis dataKey="date" tick={{fill:"#64748b",fontSize:10}} tickFormatter={(v:string)=>v.slice(5)}/>
                   <YAxis tick={{fill:"#64748b",fontSize:11}} tickFormatter={v=>v+"%"}/>
                   <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v:any)=>[v+"%","Coverage"]}/>
                   <Bar dataKey="coverage_pct" fill="#3b82f6" radius={[4,4,0,0]}/>

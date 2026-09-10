@@ -170,8 +170,9 @@ export default function HeatmapPage() {
               scrollWheelZoom={true}
             >
               <TileLayer
-                attribution='&copy; CARTO'
-                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                
               />
               {ROUTE_BASKET.map((rk) => {
                 const [o, d] = rk.split("-");
@@ -188,9 +189,10 @@ export default function HeatmapPage() {
                     key={rk}
                     positions={[start, mid, end] as any}
                     pathOptions={{
-                      color, weight: selectedRoute === rk ? (ROUTE_WEIGHTS[rk] + 3) : ROUTE_WEIGHTS[rk],
+                      color: data?.value ? color : "#cbd5e1",
+                      weight: selectedRoute === rk ? 6 : 4,
                       opacity: selectedRoute && selectedRoute !== rk ? 0.2 : 0.8,
-                      dashArray: data?.value ? undefined : "6 4",
+                      dashArray: !data?.value ? "10 10" : (ROUTE_WEIGHTS[rk] >= 7 ? undefined : (ROUTE_WEIGHTS[rk] >= 4 ? "8 6" : "2 6"))
                     }}
                     eventHandlers={{ click: () => setSelectedRoute(selectedRoute === rk ? null : rk) }}
                   >
@@ -254,22 +256,22 @@ export default function HeatmapPage() {
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginTop: "1rem", paddingTop: "1rem", borderTop: "1px dashed rgba(0,0,0,0.1)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
-            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0f172a", textTransform: "uppercase" }}>DGCA Traffic Volume (Thickness):</span>
+            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0f172a", textTransform: "uppercase" }}>DGCA Traffic Volume:</span>
             
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: 24, height: 9, borderRadius: 4, background: "#94a3b8" }}></div>
+              <div style={{ width: 24, height: 4, borderRadius: 2, background: "#94a3b8" }}></div>
               <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>High (e.g. DEL-BOM)</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: 24, height: 5, borderRadius: 3, background: "#94a3b8" }}></div>
+              <svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#94a3b8" strokeWidth="4" strokeDasharray="8 6" /></svg>
               <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>Medium</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: 24, height: 2, borderRadius: 1, background: "#94a3b8" }}></div>
+              <svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#94a3b8" strokeWidth="4" strokeDasharray="2 6" /></svg>
               <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>Low (e.g. DEL-SXR)</span>
             </div>
           </div>
-          <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Click a route · Dashed = no data</div>
+          <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Click a route · Gray = no data</div>
         </div>
       </div>
 
