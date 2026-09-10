@@ -107,3 +107,9 @@ h1 {
   border-radius: 999px;
 }
 
+
+
+/* Clean light grayscale for map tiles */
+.map-tiles-light {
+  filter: grayscale(100%) opacity(70%);
+}

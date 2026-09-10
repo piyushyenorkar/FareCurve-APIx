@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import List, Optional
 import os
+import re
 from groq import Groq
 
 router = APIRouter()
@@ -26,6 +27,12 @@ CORE DIRECTIVES:
 TONE:
 Professional, data-driven, governmental, and insightful. You speak with authority on Indian aviation."""
 
+# Models to try in order of preference
+MODELS = [
+    "allam-2-7b",
+    "qwen/qwen3.6-27b",
+]
+
 @router.post("/ai/chat")
 async def chat_endpoint(request: ChatRequest):
     load_dotenv(r'C:\AIR-INDEX\.env')
@@ -33,26 +40,36 @@ async def chat_endpoint(request: ChatRequest):
     if not api_key:
         raise HTTPException(status_code=500, detail="GROQ_API_KEY not configured in environment.")
 
-    try:
-        client = Groq(api_key=api_key)
-        
-        groq_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-        for msg in request.messages:
-            groq_messages.append({"role": msg.role, "content": msg.content})
+    client = Groq(api_key=api_key)
+    
+    groq_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    for msg in request.messages:
+        groq_messages.append({"role": msg.role, "content": msg.content})
 
-        completion = client.chat.completions.create(
-            model="llama3-70b-8192",
-            messages=groq_messages,
-            temperature=0.7,
-            max_tokens=1024,
-            top_p=1,
-            stream=False,
-            stop=None,
-        )
+    last_error = None
+    for model in MODELS:
+        try:
+            completion = client.chat.completions.create(
+                model=model,
+                messages=groq_messages,
+                temperature=0.7,
+                max_tokens=900,
+                top_p=1,
+                stream=False,
+                stop=None,
+            )
 
-        response_content = completion.choices[0].message.content
-        return {"content": response_content}
+            response_content = completion.choices[0].message.content
+            # Strip <think>...</think> reasoning tags from Qwen-family models
+            response_content = re.sub(r'<think>.*?</think>', '', response_content, flags=re.DOTALL).strip()
+            if response_content:
+                return {"content": response_content}
+            else:
+                last_error = f"Empty response from {model}"
+                continue
+        except Exception as e:
+            last_error = str(e)
+            print(f"Groq API Error with {model}: {last_error}")
+            continue
 
-    except Exception as e:
-        print(f"Groq API Error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to communicate with FareCurve AI.")
+    raise HTTPException(status_code=500, detail=f"All models failed. Last error: {last_error}")
