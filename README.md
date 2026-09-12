@@ -200,17 +200,17 @@ GROQ_API_KEY=your_groq_api_key
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-### 3. Initialize Database & Data
-From the root `AIR-INDEX` directory:
+### 3. Run the Data Pipeline
+From the root `AIR-INDEX` directory, trigger the live scraping, cleaning, and index computation process:
 ```bash
-# Drop and recreate database tables
-python -m apix.cli db-init
-
-# Load the base reference data (routes, DGCA weights)
-python -m apix.cli db-seed
-
-# Run the full data pipeline (Scrape -> Clean -> Index)
+# Run the full data pipeline (Live Scrape -> Clean -> Index)
 python -m apix.cli pipeline-run
+
+# Just run the reconstruction engine (for gated sources)
+python -m apix.cli pipeline-reconstruct
+
+# Recompute today's index from existing data
+python -m apix.cli compute-index
 ```
 
 ### 4. Run Locally
