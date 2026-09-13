@@ -1,22 +1,22 @@
 import Link from "next/link";
-import { Home, Route, Sparkles, Activity, TrendingUp, AlertCircle, ShieldCheck, Database, Droplet, CheckCircle2, Map, Code } from "lucide-react";
+import { Home, Compass, Bot, LineChart, TrendingUp, AlertTriangle, ShieldCheck, Ticket, Fuel, ListChecks, MapPin, Terminal } from "lucide-react";
 import { useRouter } from "next/router";
 
 export default function Sidebar() {
   const router = useRouter();
   const links = [
     { label: "Home", icon: Home, href: "/" },
-    { label: "FareCurve AI", icon: Sparkles, href: "/ai" },
-    { label: "Route Explorer", icon: Route, href: "/routes" },
-    { label: "Booking Curve", icon: Activity, href: "/booking-curve" },
-    { label: "Sector Heatmap", icon: Map, href: "/heatmap" },
-    { label: "Raw Fares", icon: Database, href: "/fares" },
+    { label: "FareCurve AI", icon: Bot, href: "/ai" },
+    { label: "Route Explorer", icon: Compass, href: "/routes" },
+    { label: "Booking Curve", icon: LineChart, href: "/booking-curve" },
+    { label: "Sector Heatmap", icon: MapPin, href: "/heatmap" },
+    { label: "Raw Fares", icon: Ticket, href: "/fares" },
     { label: "Forecasts", icon: TrendingUp, href: "/forecast" },
-    { label: "ATF Impact", icon: Droplet, href: "/atf" },
-    { label: "Anomalies", icon: AlertCircle, href: "/anomalies" },
+    { label: "ATF Impact", icon: Fuel, href: "/atf" },
+    { label: "Anomalies", icon: AlertTriangle, href: "/anomalies" },
     { label: "Compliance", icon: ShieldCheck, href: "/compliance" },
-    { label: "Data Quality", icon: CheckCircle2, href: "/quality" },
-    { label: "API for NSO/RBI", icon: Code, href: "/api-docs" },
+    { label: "Data Quality", icon: ListChecks, href: "/quality" },
+    { label: "API for NSO/RBI", icon: Terminal, href: "/api-docs" },
   ];
 
   return (
@@ -46,7 +46,7 @@ export default function Sidebar() {
                 className={`h-10 w-10 flex items-center justify-center rounded-full mb-1.5 transition-all ${isActive ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-200 hover:text-gray-900'}`}
                 title={link.label}
               >
-                <link.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                <link.icon size={link.icon === Bot ? 22 : 18} strokeWidth={isActive ? 2.5 : 2} />
               </Link>
             );
           })}

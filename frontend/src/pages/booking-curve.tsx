@@ -203,15 +203,13 @@ export default function BookingCurvePage() {
           <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)" }}>No data available for this route yet. Run the pipeline first.</div>
         ) : (
           <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={curve} barSize={60}>
+            <LineChart data={curve} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
               <XAxis dataKey="window" tick={{ fill: "#64748b", fontSize: 12 }} />
               <YAxis tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => "₹" + v.toLocaleString()} />
-              <Tooltip cursor={{fill: "transparent"}} contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", padding: "12px" }} formatter={(v: any, n: any) => ["₹" + Number(v).toLocaleString(), n]} />
-              <Bar dataKey="avg_fare" name="Avg Fare" radius={[8, 8, 0, 0]}>
-                {curve.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-              </Bar>
-            </BarChart>
+              <Tooltip cursor={{ stroke: "#e2e8f0", strokeWidth: 2, strokeDasharray: "4 4" }} contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", padding: "12px" }} formatter={(v: any, n: any) => ["₹" + Number(v).toLocaleString(), n]} />
+              <Line type="monotone" dataKey="avg_fare" name="Avg Fare" stroke="#3b82f6" strokeWidth={4} dot={{ fill: "#3b82f6", stroke: "#ffffff", strokeWidth: 2, r: 6 }} activeDot={{ r: 8, fill: "#0f172a", stroke: "#ffffff", strokeWidth: 2 }} />
+            </LineChart>
           </ResponsiveContainer>
         )}
       </div>

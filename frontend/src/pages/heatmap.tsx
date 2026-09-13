@@ -155,7 +155,7 @@ export default function HeatmapPage() {
         ))}
       </div>
 
-      <div className="glass-card" style={{ padding: "0", overflow: "hidden", borderRadius: "16px", marginBottom: "1.5rem" }}>
+      <div className="glass-card" style={{ padding: "0", borderRadius: "16px", marginBottom: "1.5rem" }}>
         {loading ? (
           <div className="animate-pulse" style={{ height: "550px", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ color: "#94a3b8", fontSize: "0.9rem", fontWeight: 600 }}>Loading route data...</div>
@@ -232,18 +232,7 @@ export default function HeatmapPage() {
               ))}
             </MapContainer>
             
-            <div className="glass-card" style={{ 
-              position: "absolute", 
-              top: "20px", 
-              right: "20px", 
-              zIndex: 400, 
-              padding: "1rem",
-              background: "rgba(255, 255, 255, 0.65)",
-              backdropFilter: "blur(10px)",
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-              borderRadius: "12px",
-              minWidth: "180px"
-            }}>
+            <div className="absolute top-5 right-5 z-[400] p-4 bg-white/40 backdrop-blur-xl shadow-lg rounded-xl min-w-[180px] border border-white/40">
               <div style={{ marginBottom: "1rem" }}>
                 <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.5px" }}>Index Legend</span>
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
