@@ -10,7 +10,7 @@ from datetime import date, timedelta, datetime, timezone
 
 from apix.domain import ROUTE_BASKET, BOOKING_WINDOWS, SOURCES
 from apix.db import session_scope
-from apix.db.models import CleanedFare, IndexValue, DataQualityLog
+from apix.db.models import CleanedFare, IndexValue, DataQualityLog, RawFareSnapshot
 from apix.config import settings
 
 logger = logging.getLogger(__name__)
@@ -68,11 +68,13 @@ def backfill(days: int = 30, seed: int = 42) -> dict:
                     conv_fee = round(total * 0.06, 2)
                     travel_date = obs_date + timedelta(days=window)
                     source_slug = random.choice(ALLOWED_SOURCES + GATED_SOURCES)
+                    source_type = next((s.source_type.value for s in SOURCES if s.slug == source_slug), "ota")
                     provenance = "LIVE_SCRAPE" if source_slug in ALLOWED_SOURCES else "RECONSTRUCTED"
 
                     route_fares[rk].append(total)
                     day_quotes.append({
                         "source_slug": source_slug,
+                        "source_type": source_type,
                         "provenance": provenance,
                         "origin": route.origin,
                         "destination": route.destination,
@@ -90,8 +92,9 @@ def backfill(days: int = 30, seed: int = 42) -> dict:
         # Store quotes
         with session_scope() as s:
             for q in day_quotes:
-                obs = CleanedFare(
+                raw_obs = RawFareSnapshot(
                     source_slug=q["source_slug"],
+                    source_type=q["source_type"],
                     provenance=q["provenance"],
                     origin=q["origin"],
                     destination=q["destination"],
@@ -101,7 +104,28 @@ def backfill(days: int = 30, seed: int = 42) -> dict:
                     observed_at=datetime.combine(q["observation_date"], datetime.min.time(), tzinfo=timezone.utc),
                     booking_window_days=q["booking_window"],
                     carrier_code=q["carrier"],
-                    
+                    base_fare=q["base_fare"],
+                    taxes=q["taxes"],
+                    convenience_fee=q["convenience_fee"],
+                    total_fare=q["total_fare"],
+                    availability_status="available"
+                )
+                s.add(raw_obs)
+                s.flush() # Get the ID for raw_obs
+                
+                obs = CleanedFare(
+                    raw_id=raw_obs.id,
+                    source_slug=q["source_slug"],
+                    source_type=q["source_type"],
+                    provenance=q["provenance"],
+                    origin=q["origin"],
+                    destination=q["destination"],
+                    route_key=q["route_key"],
+                    travel_date=q["travel_date"],
+                    observation_date=q["observation_date"],
+                    observed_at=datetime.combine(q["observation_date"], datetime.min.time(), tzinfo=timezone.utc),
+                    booking_window_days=q["booking_window"],
+                    carrier_code=q["carrier"],
                     base_fare=q["base_fare"],
                     taxes=q["taxes"],
                     convenience_fee=q["convenience_fee"],

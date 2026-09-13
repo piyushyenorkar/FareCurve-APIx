@@ -161,7 +161,7 @@ export default function HeatmapPage() {
             <div style={{ color: "#94a3b8", fontSize: "0.9rem", fontWeight: 600 }}>Loading route data...</div>
           </div>
         ) : (
-          <div style={{ height: "550px", width: "100%" }}>
+          <div style={{ height: "550px", width: "100%", position: "relative" }}>
             <MapContainer
               center={[22.5, 79.5] as any}
               zoom={5}
@@ -231,48 +231,57 @@ export default function HeatmapPage() {
                 </CircleMarker>
               ))}
             </MapContainer>
+            
+            <div className="glass-card" style={{ 
+              position: "absolute", 
+              top: "20px", 
+              right: "20px", 
+              zIndex: 400, 
+              padding: "1rem",
+              background: "rgba(255, 255, 255, 0.65)",
+              backdropFilter: "blur(10px)",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+              borderRadius: "12px",
+              minWidth: "180px"
+            }}>
+              <div style={{ marginBottom: "1rem" }}>
+                <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.5px" }}>Index Legend</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
+                  {[
+                    { label: "< 95 (Cheap)", color: "#10b981" },
+                    { label: "95-105 (Base)", color: "#3b82f6" },
+                    { label: "105-115 (Moderate)", color: "#f59e0b" },
+                    { label: "115-130 (High)", color: "#f97316" },
+                    { label: "> 130 (Surge)", color: "#ef4444" },
+                  ].map((item) => (
+                    <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <div style={{ width: 16, height: 4, borderRadius: 2, background: item.color }}></div>
+                      <span style={{ fontSize: "0.7rem", color: "#475569", fontWeight: 600 }}>{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: "0.75rem" }}>
+                <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#0f172a", textTransform: "uppercase", letterSpacing: "0.5px" }}>Traffic Volume</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "8px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ width: 24, height: 3, borderRadius: 2, background: "#94a3b8" }}></div>
+                    <span style={{ fontSize: "0.7rem", color: "#475569", fontWeight: 600 }}>High</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <svg width="24" height="3"><line x1="0" y1="1.5" x2="24" y2="1.5" stroke="#94a3b8" strokeWidth="3" strokeDasharray="6 4" strokeLinecap="round" /></svg>
+                    <span style={{ fontSize: "0.7rem", color: "#475569", fontWeight: 600 }}>Medium</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <svg width="24" height="3"><line x1="0" y1="1.5" x2="24" y2="1.5" stroke="#94a3b8" strokeWidth="3" strokeDasharray="1 5" strokeLinecap="round" /></svg>
+                    <span style={{ fontSize: "0.7rem", color: "#475569", fontWeight: 600 }}>Low</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
-      </div>
-
-            <div className="glass-card" style={{ padding: "1.25rem 2rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
-            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0f172a", textTransform: "uppercase" }}>Index Legend:</span>
-            {[
-              { label: "< 95 (Cheap)", color: "#10b981" },
-              { label: "95-105 (Base)", color: "#3b82f6" },
-              { label: "105-115 (Moderate)", color: "#f59e0b" },
-              { label: "115-130 (High)", color: "#f97316" },
-              { label: "> 130 (Surge)", color: "#ef4444" },
-            ].map((item) => (
-              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <div style={{ width: 14, height: 4, borderRadius: 2, background: item.color }}></div>
-                <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginTop: "1rem", paddingTop: "1rem", borderTop: "1px dashed rgba(0,0,0,0.1)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
-            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#0f172a", textTransform: "uppercase" }}>DGCA Traffic Volume:</span>
-            
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: 24, height: 4, borderRadius: 2, background: "#94a3b8" }}></div>
-              <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>High (e.g. DEL-BOM)</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#94a3b8" strokeWidth="4" strokeDasharray="8 6" /></svg>
-              <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>Medium</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <svg width="24" height="4"><line x1="0" y1="2" x2="24" y2="2" stroke="#94a3b8" strokeWidth="4" strokeDasharray="2 6" /></svg>
-              <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>Low (e.g. DEL-SXR)</span>
-            </div>
-          </div>
-          <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Click a route · Gray = no data</div>
-        </div>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1rem", marginTop: "1.5rem" }}>
