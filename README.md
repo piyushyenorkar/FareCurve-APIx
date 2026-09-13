@@ -232,8 +232,12 @@ npm run dev
 ## <img src="https://img.icons8.com/fluency/48/group.png" width="32" height="32" align="center" /> Team
 
 Built for **Smart India Hackathon 2024** by **Team Starcy**:
-- **Piyush** (Leader)
-- **Debashree** 
+- **Piyush Rajendra Yenorkar** (Leader)
+- **Debashree Gourhari Mal**
+- **Sahil Charudatta Tate**
+- **Tanish Shailesh Soni**
+- **Riddhi Kanhaiyalalji Trivedi**
+- **Gaurav Shyam Yadav** 
 
 <br/>
 <img src="https://img.icons8.com/fluency/96/airplane-take-off.png" height="70" width="70" align="center" alt="FareCurve Favicon" />
