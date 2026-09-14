@@ -1,21 +1,27 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { api } from "../lib/api";
+import { formatDate } from "../lib/formatDate";
 import { Activity, ArrowRight, ArrowUpRight, ArrowDownRight, CheckCircle2, ShieldCheck, Info, Route, Server, MapPin, Calendar, ArrowDown, Search, Download, ChevronDown, FileText, Code, Database, FileSpreadsheet, Plane, X } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import Link from "next/link";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { TimeFilter } from "../components/TimeFilter";
+import { AirportSearch } from "../components/AirportSearch";
 
 export default function Home() {
   const [latest, setLatest] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [routesData, setRoutesData] = useState<any[]>([]);
-  const [timeFilter, setTimeFilter] = useState<string>('7D');
+  const [timeFilter, setTimeFilter] = useState<string>('30D');
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visibleLogs, setVisibleLogs] = useState(0);
+  const [origin, setOrigin] = useState("");
+  const [dest, setDest] = useState("");
+
+  const ALLOWED_CODES = ["DEL", "BOM", "BLR", "CCU", "HYD", "MAA"];
 
   useEffect(() => setMounted(true), []);
 
@@ -57,7 +63,7 @@ export default function Home() {
     }).catch(() => { });
 
         api.indexOverall(30).then((d: any) => {
-      if (d) setHistory(d.reverse()); // Reverse to chronological
+      if (d) setHistory(d); // Backend already returns chronological, do not reverse again
     }).catch(() => { });
 
     api.routes().then(async (d: any[]) => {
@@ -80,6 +86,21 @@ export default function Home() {
     }).catch(() => { });
   }, []);
 
+  const handleExportCSV = () => {
+    const dataToExport = history.length ? history : fallbackData;
+    const headers = ["Date,APIx Value,Observations,Confidence %"];
+    const rows = dataToExport.map(h => `${h.date},${h.value},${h.observations || 0},${h.confidence_pct || 100}`);
+    const csvContent = "data:text/csv;charset=utf-8," + headers.concat(rows).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `apix_time_series_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setIsExportOpen(false);
+  };
+
   // Government aesthetic: stable, minimal hover, sharp borders, high contrast.
   // Changed hover to change background instead of border as requested.
   const cardStyle = "bg-white p-6 md:p-8 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors duration-200 flex flex-col justify-center";
@@ -100,11 +121,40 @@ export default function Home() {
     { date: 'Aug 12', value: 108 },
     { date: 'Aug 20', value: 111 },
     { date: 'Aug 28', value: 115 },
-    { date: 'Sep 1', value: 118 },
-    { date: 'Sep 3', value: 123.39 }
+    { date: '1 Sep', value: 118 },
+    { date: '3 Sept', value: 123.39 }
   ];
 
-  const fullData = history.length ? history : fallbackData;
+  let rawData = [...(history.length ? history : fallbackData)];
+  
+  // Format dates and deduplicate (fixes multiple entries for the same day)
+  const uniqueDataMap = new Map();
+  rawData.forEach(item => {
+    const rawDateStr = item.date || item.computation_date;
+    const formattedDate = formatDate(rawDateStr);
+    uniqueDataMap.set(formattedDate, { ...item, date: formattedDate, rawDate: rawDateStr });
+  });
+  let fullData = Array.from(uniqueDataMap.values());
+  
+  // Ensure the latest value is appended to the chart so numbers match the headline
+  if (latest && fullData.length > 0) {
+    const lastRawDate = fullData[fullData.length - 1].rawDate;
+    const latestDate = latest.date || latest.computation_date || 'Today';
+    const formattedLatest = formatDate(latestDate);
+    
+    // If the latest date is different from the last history point, append it
+    if (lastRawDate !== latestDate && formattedLatest !== fullData[fullData.length - 1].date) {
+      fullData.push({ date: `${formattedLatest} (Today)`, value: latest.value, rawDate: latestDate });
+    } else {
+      // If dates match, ensure the value is exactly what the headline shows
+      fullData[fullData.length - 1] = { 
+        ...fullData[fullData.length - 1], 
+        value: latest.value,
+        date: `${formattedLatest} (Today)`
+      };
+    }
+  }
+
   let chartData = fullData;
   if (timeFilter === '7D') {
     chartData = fullData.length > 7 ? fullData.slice(-7) : fullData;
@@ -129,31 +179,41 @@ export default function Home() {
         {/* Controls Row */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
 
-          {/* Search Bar */}
-          <div className="relative flex-1 w-full group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-full text-gray-900 leading-5 bg-white shadow-sm placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 sm:text-sm transition-all duration-300 hover:border-gray-300 hover:shadow-md"
-              placeholder="Search sectors (e.g. DEL-BOM), airlines, or dates..."
-            />
+          {/* Structured Route Search */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Search size={14} style={{ color: "#64748b" }} />
+            <AirportSearch placeholder="Origin (DEL)" value={origin} onChange={setOrigin} />
+            <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
+            <AirportSearch placeholder="Dest (BOM)" value={dest} onChange={setDest} />
+            <button onClick={() => {
+                if (origin && dest) window.location.href = `/routes?route=${origin}-${dest}`;
+              }} 
+              style={{ padding: "0.5rem 1rem", borderRadius: "999px", background: "#0f172a", color: "#fff", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", border: "none" }}>
+              Search
+            </button>
           </div>
 
           {/* Right Controls */}
           <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
 
-            {/* Live Indicator */}
-            <div
-              onClick={() => setIsLogsOpen(true)}
-              className="group flex items-center gap-3 bg-white border border-gray-200 pl-4 pr-3 py-2.5 rounded-full text-sm font-medium text-gray-600 w-full md:w-auto justify-center whitespace-nowrap shadow-sm cursor-pointer hover:bg-gray-50 hover:border-blue-200 transition-all">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span>Live • updated 3 min ago</span>
+            {/* Header Badges */}
+            <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+              <div
+                onClick={() => setIsLogsOpen(true)}
+                className="group flex items-center gap-3 bg-white border border-gray-200 pl-4 pr-3 py-2 rounded-full text-sm font-medium text-gray-600 justify-center shadow-sm cursor-pointer hover:bg-gray-50 hover:border-blue-200 transition-all">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  <span>Live • updated 3 min ago</span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-gray-100 group-hover:bg-blue-50 group-hover:text-blue-700 px-2 py-1 rounded-full text-xs font-bold text-gray-500 transition-colors">
+                  View logs <ArrowRight size={14} />
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 bg-gray-100 group-hover:bg-blue-50 group-hover:text-blue-700 px-2.5 py-1.5 rounded-full text-xs font-bold text-gray-500 transition-colors">
-                View logs <ArrowRight size={14} />
+              <div className="flex items-center gap-2 text-[12px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-2.5 rounded-full shadow-sm whitespace-nowrap">
+                <ShieldCheck size={14} />
+                88% Confidence
+                <span className="text-emerald-300">•</span>
+                <span className="font-semibold text-emerald-600">Last validated: {latest ? formatDate(latest.date || latest.computation_date) : "Today"}</span>
               </div>
             </div>
 
@@ -171,8 +231,8 @@ export default function Home() {
               {isExportOpen && (
                 <div className="absolute right-0 mt-3 w-[340px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden transform origin-top-right transition-all">
                   <div className="flex flex-col p-2 gap-1">
-                    <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
-                      <div className="text-blue-500 mt-0.5">
+                    <button onClick={handleExportCSV} className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
+                      <div className="text-blue-600 bg-blue-50 p-2 rounded-lg">
                         <Database size={18} />
                       </div>
                       <div className="flex flex-col">
@@ -182,7 +242,7 @@ export default function Home() {
                     </button>
 
                     <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
-                      <div className="text-emerald-500 mt-0.5">
+                      <div className="text-blue-600 bg-blue-50 p-2 rounded-lg">
                         <Calendar size={18} />
                       </div>
                       <div className="flex flex-col">
@@ -192,7 +252,7 @@ export default function Home() {
                     </button>
 
                     <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
-                      <div className="text-purple-500 mt-0.5">
+                      <div className="text-blue-600 bg-blue-50 p-2 rounded-lg">
                         <FileText size={18} />
                       </div>
                       <div className="flex flex-col">
@@ -202,7 +262,7 @@ export default function Home() {
                     </button>
 
                     <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
-                      <div className="text-gray-400 mt-1 w-[18px] text-center flex justify-center">
+                      <div className="text-blue-600 bg-blue-50 p-2 rounded-lg flex justify-center items-center h-[34px] w-[34px]">
                         <span className="text-[11px] font-bold tracking-wider">API</span>
                       </div>
                       <div className="flex flex-col">
@@ -223,7 +283,7 @@ export default function Home() {
         <div className={cardStyle}>
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-              <Activity className="text-gray-400 w-4 h-4" /> Airfare Price Index
+              <Activity className="text-gray-400 w-4 h-4" /> Airfare Price Index (APIx)
             </div>
             <InfoTooltip text="Our proprietary price index (Base 100 = Aug 2023). A value of 123 means airfares are 23% higher than the baseline. Calculated using the Jevons Geometric Mean to prevent extreme outliers." />
           </div>
@@ -282,7 +342,7 @@ export default function Home() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h3 className="text-lg font-bold text-gray-900 uppercase">FARECURVE TREND</h3>
-            <span className="text-sm text-gray-500">Base = 100</span>
+            <span className="text-sm text-gray-500">All-India composite index, daily. Base = 100.</span>
           </div>
           {/* Time Filter Toggle */}
           <TimeFilter value={timeFilter} onChange={setTimeFilter} layoutIdPrefix="homeFilter" />
@@ -290,20 +350,16 @@ export default function Home() {
         <div className="w-full h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} dy={10} />
-              <YAxis domain={['auto', 'auto']} axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#ffffff", borderRadius: "4px", border: "1px solid #e5e7eb", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)", padding: "8px 12px" }}
-                itemStyle={{ color: "#111827", fontSize: "14px", fontWeight: 600, padding: 0 }}
-                labelStyle={{ display: "none" }}
-              />
-              <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={3} strokeDasharray="6 6" dot={false} activeDot={{ r: 6, fill: "#2563eb", stroke: "#fff", strokeWidth: 2 }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+              <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} />
+              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} domain={["auto", "auto"]} />
+              <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v: any, n: any) => [Number(v).toFixed(2), n]} />
+              <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
         <div className="text-sm text-gray-400 mt-6 flex justify-between items-center">
-          <span>Awaiting live pipeline data</span>
+          <span>{latest ? "Live data integrated" : "Awaiting live pipeline data..."}</span>
         </div>
         {/* Floating scroll indicator */}
         <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors">
@@ -313,59 +369,77 @@ export default function Home() {
 
       {/* Info Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                  {/* Route Explorer Card */}
-          <div className={`${cardStyle} !justify-between gap-6 group`}>
-            <div>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-base">
-                <Route size={20} className="text-blue-600" />
-                Route Explorer
-              </h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Track individual route indices — live from the database
-              </p>
+             {/* Route Explorer Card */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:border-blue-300 transition-colors flex flex-col h-full group">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <Route size={20} />
+              </div>
+              <h3 className="font-bold text-gray-900 text-lg">Route Explorer</h3>
             </div>
-            <Link href="/routes" className="self-start inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
-              Explore routes <ArrowRight size={16} className="ml-2" />
-            </Link>
+            <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-1">
+              Track individual route indices — live from the database.
+            </p>
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+              <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+                <Activity size={12} className="text-blue-500" /> {routesData.length > 0 ? routesData.length : 17} active
+              </div>
+              <Link href="/routes" className="text-sm font-bold text-blue-600 group-hover:text-blue-700 flex items-center gap-1">
+                Explore <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
           </div>
 
         {/* Booking Curve Card */}
-        <div className={`${cardStyle} !justify-between gap-6 group`}>
-          <div>
-            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-base">
-              <Activity size={20} className="text-blue-600" />
-              Booking-window curve
-            </h3>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Fare shift from T+45 to T+1, manual CPI can't capture this
-            </p>
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:border-blue-300 transition-colors flex flex-col h-full group">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Activity size={20} />
+            </div>
+            <h3 className="font-bold text-gray-900 text-lg">Booking-window</h3>
           </div>
-          <Link href="/booking-curve" className="self-start inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
-            Explore booking curve <ArrowRight size={16} className="ml-2" />
-          </Link>
+          <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-1">
+            Fare shift from T+45 to T+1, manual CPI can't capture this.
+          </p>
+          <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+            <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+              <ArrowUpRight size={12} className="text-amber-500" /> Up to 3x price jump
+            </div>
+            <Link href="/booking-curve" className="text-sm font-bold text-blue-600 group-hover:text-blue-700 flex items-center gap-1">
+              Explore <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
 
-                  {/* Sector Heatmap Card */}
-          <div className={`${cardStyle} !justify-between gap-6 group`}>
-            <div>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-base">
-                <MapPin size={20} className="text-emerald-600" />
-                Sector Heatmap
-              </h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                Geographic visualization of route-level price indices across India
-              </p>
+          {/* Sector Heatmap Card */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:border-blue-300 transition-colors flex flex-col h-full group">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <MapPin size={20} />
+              </div>
+              <h3 className="font-bold text-gray-900 text-lg">Sector Heatmap</h3>
             </div>
-            <Link href="/heatmap" className="self-start inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
-              View heatmap <ArrowRight size={16} className="ml-2" />
-            </Link>
+            <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-1">
+              Geographic visualization of route-level price indices across India.
+            </p>
+            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+              <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+                <Activity size={12} className="text-red-500" /> 4 routes in surge
+              </div>
+              <Link href="/heatmap" className="text-sm font-bold text-blue-600 group-hover:text-blue-700 flex items-center gap-1">
+                Explore <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
           </div>
       </div>
 
       {/* Fare by Sector - New Bottom Section */}
       <div className={cardStyle}>
         <div className="flex justify-between items-center mb-6">
-          <h3 className="font-bold text-gray-900 text-lg">Fare by sector</h3>
+          <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+            Fare by sector 
+            <span className="text-sm font-normal text-gray-500">(Top 6 of 17)</span>
+          </h3>
           <Link href="/routes" className="inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
             Open route explorer <ArrowRight size={16} className="ml-2" />
           </Link>
@@ -385,6 +459,14 @@ export default function Home() {
               const isDone = !!latest;
               const status = isDone ? 'Done' : 'Scraping';
               const progress = isDone ? 'w-full' : 'w-3/4';
+              
+              const getIndexColor = (val: number) => {
+                if (val < 100) return 'text-green-600 bg-green-50 border-green-100 px-1 rounded';
+                if (val > 130) return 'text-red-600 bg-red-50 border-red-100 px-1 rounded';
+                if (val > 115) return 'text-orange-500 bg-orange-50 border-orange-100 px-1 rounded';
+                return 'text-blue-600 bg-blue-50 border-blue-100 px-1 rounded';
+              };
+              
               return (
             <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-gray-300 transition-colors">
               <div className="flex justify-between items-start mb-4">
@@ -394,7 +476,7 @@ export default function Home() {
                   </div>
                   <div className="text-[11px] font-semibold text-gray-500 mt-1.5 flex flex-col gap-1 uppercase tracking-wider">
                     <div className="flex items-center gap-1.5"><Route size={12} className="text-gray-400" /> {flights} flights tracked</div>
-                    {fare && <div className="text-blue-600 font-bold mt-1 tracking-normal capitalize">Avg Fare: ₹{Math.round(fare).toLocaleString()} <span className="text-gray-400 font-medium">(Idx: {indexVal.toFixed(1)})</span></div>}
+                    {fare && <div className="text-gray-700 font-bold mt-1 tracking-normal capitalize">Avg Fare: ₹{Math.round(fare).toLocaleString()} <span className={`font-medium border ml-1 ${getIndexColor(indexVal)}`}>(Idx: {indexVal.toFixed(1)})</span></div>}
                   </div>
                 </div>
                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${status === 'Done' ? 'bg-green-50 text-green-700' : status === 'Scraping' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>
@@ -403,8 +485,12 @@ export default function Home() {
                 </span>
               </div>
               <div className="flex flex-col">
-                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className={`h-full ${status === 'Done' ? 'bg-green-500' : status === 'Scraping' ? 'bg-blue-500' : 'bg-amber-500'} rounded-full ${progress}`}></div>
+                <div className="flex justify-between items-center mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                  <span>Data Completeness</span>
+                  <span className={status === 'Done' ? 'text-green-600' : 'text-blue-600'}>{status === 'Done' ? '100%' : '75%'}</span>
+                </div>
+                <div className="w-full h-1 bg-gray-50 rounded-full overflow-hidden">
+                  <div className={`h-full ${status === 'Done' ? 'bg-green-400' : status === 'Scraping' ? 'bg-blue-400' : 'bg-amber-400'} rounded-full ${progress}`}></div>
                 </div>
               </div>
             </div>

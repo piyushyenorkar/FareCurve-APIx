@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
 import { InfoTooltip } from "../components/InfoTooltip";
+import { formatDate } from "../lib/formatDate";
 
 const CLASS_COLORS: Record<string,string> = {
   "GENUINE_SURGE": "#f43f5e",
@@ -70,7 +71,7 @@ export default function AnomaliesPage() {
                 <tr key={i}>
                   <td style={{fontWeight:700}}>{a.route}</td>
                   <td>{a.booking_window}</td>
-                  <td>{a.date}</td>
+                  <td>{formatDate(a.date)}</td>
                   <td style={{fontWeight:700}}>₹{a.fare?.toLocaleString()}</td>
                   <td>₹{a.mean_fare?.toLocaleString()}</td>
                   <td style={{color:CLASS_COLORS[a.classification]||"#64748b",fontWeight:700}}>{a.z_score?.toFixed(2)}</td>

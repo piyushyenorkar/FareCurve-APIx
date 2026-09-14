@@ -161,7 +161,7 @@ export default function BookingCurvePage() {
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <Search size={14} style={{ color: "#64748b" }} />
           <AirportSearch placeholder="Origin (DEL)" value={customOrigin} onChange={setCustomOrigin} />
-          <span style={{ color: "#64748b", fontSize: "0.8rem" }}>→</span>
+          <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
           <AirportSearch placeholder="Dest (BOM)" value={customDest} onChange={setCustomDest} />
           <button onClick={handleCustomRoute} 
             style={{ padding: "0.5rem 1rem", borderRadius: "999px", background: "#0f172a", color: "#fff", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", border: "none" }}>

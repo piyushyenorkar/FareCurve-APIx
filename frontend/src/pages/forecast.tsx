@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
+import { formatDate } from "../lib/formatDate";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import { TrendingUp, TrendingDown, Minus, Plane } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
@@ -56,7 +57,7 @@ export default function ForecastPage() {
         
         if (Array.isArray(fcst.history)) {
           const recentHist = fcst.history.map((d: any) => ({
-            date: d.date?.slice(5) || d.date,
+            date: formatDate(d.date),
             actual: d.actual,
             type: "actual"
           }));
@@ -65,7 +66,7 @@ export default function ForecastPage() {
         
         if (Array.isArray(fcst.forecast)) {
           setForecastData(fcst.forecast.map((d: any) => ({
-            date: d.date?.slice(5) || d.date,
+            date: formatDate(d.date),
             predicted: d.predicted_fare,
             type: "forecast"
           })));
@@ -249,11 +250,13 @@ function FareCalendar({ route, forecastData, currentAvg }: { route: string; fore
             textAlign: "center", cursor: "pointer", transition: "all 0.2s",
             border: isToday ? "2px solid #3b82f6" : isCheapest ? "2px solid #10b981" : isMostExpensive ? "2px solid #ef4444" : "1px solid transparent",
             position: "relative",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
           }} className="hover:scale-[1.05] hover:shadow-md">
-            <div style={{ fontSize: "0.7rem", fontWeight: 600, marginBottom: "4px", opacity: 0.7 }}>
-              {d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+            {isToday && <div style={{ position: "absolute", top: -8, right: -8, background: "#3b82f6", color: "#fff", fontSize: "0.6rem", padding: "2px 4px", borderRadius: "4px", fontWeight: 700 }}>TODAY</div>}
+            <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "4px", opacity: 0.8 }}>
+              {formatDate(d.toISOString())}
             </div>
-            <div style={{ fontSize: "1rem", fontWeight: 800 }}>
+            <div style={{ fontSize: "0.95rem", fontWeight: 800 }}>
               ₹{price.toLocaleString()}
             </div>
             {isCheapest && <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "#10b981", marginTop: "2px" }}>BEST</div>}
