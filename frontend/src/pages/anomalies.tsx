@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
+import { AlertCircle, AlertTriangle, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
+import { ChartAIButton } from "../components/ChartAIButton";
 import { formatDate } from "../lib/formatDate";
 
 const CLASS_COLORS: Record<string,string> = {
@@ -32,9 +34,12 @@ export default function AnomaliesPage() {
 
   return (
     <div>
-      <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">Anomaly Detection <InfoTooltip text="Z-score based outlier detection (threshold: 2.5σ). Anomalies are classified as Genuine Surge (multi-source corroboration), Data Error (single source), or Seasonal Spike (festival window)." /></span>
-      </h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.25rem" }}>
+        <h1 style={{fontSize:"1.75rem",fontWeight:800, margin: 0}}>
+          <span className="gradient-text">Anomaly Detection <InfoTooltip text="Z-score based outlier detection (threshold: 2.5σ). Anomalies are classified as Genuine Surge (multi-source corroboration), Data Error (single source), or Seasonal Spike (festival window)." /></span>
+        </h1>
+        <ChartAIButton contextQuery="Analyze the latest pricing anomalies, z-scores, and spike classifications." />
+      </div>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
         Automated fare spike detection with cross-source corroboration — live from the pipeline
       </p>

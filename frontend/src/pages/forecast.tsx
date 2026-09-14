@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Minus, Plane } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { Search, Filter } from "lucide-react";
 import { AirportSearch } from "../components/AirportSearch";
+import { ChartAIButton } from "../components/ChartAIButton";
 import { CustomDropdown } from "../components/CustomDropdown";
 
 const ROUTES = ["DEL-BOM", "DEL-BLR", "BOM-BLR", "DEL-CCU", "BLR-HYD", "MAA-DEL", "DEL-HYD", "BOM-CCU", "DEL-PNQ", "DEL-AMD", "BOM-GOI", "DEL-GOI", "DEL-LKO", "DEL-SXR", "DEL-JAI", "DEL-MAA"];
@@ -138,7 +139,10 @@ export default function ForecastPage() {
         </div>
         <div style={{display:"grid",gridTemplateColumns:"3fr 1fr",gap:"1.5rem",marginBottom:"2rem"}}>
         <div className="glass-card">
-          <h2 style={{fontSize:"1.1rem",fontWeight:700,marginBottom:"1rem"}}>{route} — Actual vs Predicted</h2>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+            <h2 style={{fontSize:"1.1rem",fontWeight:700, margin: 0}}>{route} — Actual vs Predicted</h2>
+            <ChartAIButton contextQuery={`Analyze the forecast vs actual trends for the ${route} route.`} />
+          </div>
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={combined}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)"/>
@@ -194,6 +198,9 @@ export default function ForecastPage() {
 }
 
 function FareCalendar({ route, forecastData, currentAvg }: { route: string; forecastData: any[]; currentAvg: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   // Generate 14-day calendar grid
   const today = new Date();
   const days = Array.from({ length: 14 }, (_, i) => {
@@ -201,6 +208,10 @@ function FareCalendar({ route, forecastData, currentAvg }: { route: string; fore
     d.setDate(d.getDate() + i);
     return d;
   });
+
+  if (!mounted) {
+    return <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px", height: "150px" }}></div>;
+  }
 
   // Use forecast data if available, otherwise simulate based on currentAvg
   const prices = days.map((d, i) => {

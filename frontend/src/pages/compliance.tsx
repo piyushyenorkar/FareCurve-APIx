@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
-import { ShieldCheck, ShieldX } from "lucide-react";
+import { ShieldCheck, ShieldAlert, CheckCircle2, AlertCircle, ShieldX } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
+import { ChartAIButton } from "../components/ChartAIButton";
 
 export default function CompliancePage() {
   const [sources, setSources] = useState<any[]>([]);
@@ -40,9 +41,12 @@ export default function CompliancePage() {
 
   return (
     <div>
-      <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">Compliance Matrix</span>
-      </h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.25rem" }}>
+        <h1 style={{fontSize:"1.75rem",fontWeight:800, margin: 0}}>
+          <span className="gradient-text">Compliance Matrix</span>
+        </h1>
+        <ChartAIButton contextQuery="Analyze the robots.txt scraping compliance status and block rules across Indian airlines." />
+      </div>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
         RFC 9309 robots.txt compliance audit &bull; Every scrape decision is traceable — live from backend
       </p>

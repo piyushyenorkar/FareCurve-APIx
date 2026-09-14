@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../lib/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { InfoTooltip } from "../components/InfoTooltip";
+import { ChartAIButton } from "../components/ChartAIButton";
 import { formatDate } from "../lib/formatDate";
 
 export default function QualityPage() {
@@ -22,9 +23,12 @@ export default function QualityPage() {
 
   return (
     <div>
-      <h1 style={{fontSize:"1.75rem",fontWeight:800,marginBottom:"0.25rem"}}>
-        <span className="gradient-text">Data Quality Monitor <InfoTooltip text="Tracks pipeline health: coverage (% of route×window cells filled), confidence score, and live vs reconstructed observation counts." /></span>
-      </h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.25rem" }}>
+        <h1 style={{fontSize:"1.75rem",fontWeight:800, margin: 0}}>
+          <span className="gradient-text">Data Quality Monitor <InfoTooltip text="Tracks pipeline health: coverage (% of route×window cells filled), confidence score, and live vs reconstructed observation counts." /></span>
+        </h1>
+        <ChartAIButton contextQuery="Evaluate the overall pipeline data quality, coverage percentages, and confidence scores." />
+      </div>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
         Pipeline coverage and confidence metrics — live from the database
       </p>

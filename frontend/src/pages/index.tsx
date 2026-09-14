@@ -8,6 +8,7 @@ import Link from "next/link";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { TimeFilter } from "../components/TimeFilter";
 import { AirportSearch } from "../components/AirportSearch";
+import { ChartAIButton } from "../components/ChartAIButton";
 
 export default function Home() {
   const [latest, setLatest] = useState<any>(null);
@@ -62,7 +63,7 @@ export default function Home() {
       if (d && d.value) setLatest(d);
     }).catch(() => { });
 
-        api.indexOverall(30).then((d: any) => {
+    api.indexOverall(30).then((d: any) => {
       if (d) setHistory(d); // Backend already returns chronological, do not reverse again
     }).catch(() => { });
 
@@ -126,7 +127,7 @@ export default function Home() {
   ];
 
   let rawData = [...(history.length ? history : fallbackData)];
-  
+
   // Format dates and deduplicate (fixes multiple entries for the same day)
   const uniqueDataMap = new Map();
   rawData.forEach(item => {
@@ -135,20 +136,20 @@ export default function Home() {
     uniqueDataMap.set(formattedDate, { ...item, date: formattedDate, rawDate: rawDateStr });
   });
   let fullData = Array.from(uniqueDataMap.values());
-  
+
   // Ensure the latest value is appended to the chart so numbers match the headline
   if (latest && fullData.length > 0) {
     const lastRawDate = fullData[fullData.length - 1].rawDate;
     const latestDate = latest.date || latest.computation_date || 'Today';
     const formattedLatest = formatDate(latestDate);
-    
+
     // If the latest date is different from the last history point, append it
     if (lastRawDate !== latestDate && formattedLatest !== fullData[fullData.length - 1].date) {
       fullData.push({ date: `${formattedLatest} (Today)`, value: latest.value, rawDate: latestDate });
     } else {
       // If dates match, ensure the value is exactly what the headline shows
-      fullData[fullData.length - 1] = { 
-        ...fullData[fullData.length - 1], 
+      fullData[fullData.length - 1] = {
+        ...fullData[fullData.length - 1],
         value: latest.value,
         date: `${formattedLatest} (Today)`
       };
@@ -186,8 +187,8 @@ export default function Home() {
             <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
             <AirportSearch placeholder="Dest (BOM)" value={dest} onChange={setDest} />
             <button onClick={() => {
-                if (origin && dest) window.location.href = `/routes?route=${origin}-${dest}`;
-              }} 
+              if (origin && dest) window.location.href = `/routes?route=${origin}-${dest}`;
+            }}
               style={{ padding: "0.5rem 1rem", borderRadius: "999px", background: "#0f172a", color: "#fff", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", border: "none" }}>
               Search
             </button>
@@ -310,18 +311,18 @@ export default function Home() {
           </div>
         </div>
 
-                  <div className={cardStyle}>
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                <Database className="text-gray-400 w-4 h-4" /> Daily Quotes Captured
-              </div>
-              <InfoTooltip text="High-frequency data collection capturing massive amounts of real-time prices across various booking windows and OTAs/Airlines." />
+        <div className={cardStyle}>
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <Database className="text-gray-400 w-4 h-4" /> Daily Quotes Captured
             </div>
-            <div className="flex flex-col gap-2">
-              <span className="text-4xl font-bold tracking-tight text-gray-900">48,250</span>
-              <div className="text-sm text-gray-500">Cleaned & de-duplicated</div>
-            </div>
+            <InfoTooltip text="High-frequency data collection capturing massive amounts of real-time prices across various booking windows and OTAs/Airlines." />
           </div>
+          <div className="flex flex-col gap-2">
+            <span className="text-4xl font-bold tracking-tight text-gray-900">48,250</span>
+            <div className="text-sm text-gray-500">Cleaned & de-duplicated</div>
+          </div>
+        </div>
 
         <div className={cardStyle}>
           <div className="flex justify-between items-center mb-3">
@@ -345,7 +346,10 @@ export default function Home() {
             <span className="text-sm text-gray-500">All-India composite index, daily. Base = 100.</span>
           </div>
           {/* Time Filter Toggle */}
-          <TimeFilter value={timeFilter} onChange={setTimeFilter} layoutIdPrefix="homeFilter" />
+          <div className="flex items-center gap-4">
+            <ChartAIButton contextQuery="Analyze the all-India FareCurve historical trend index." />
+            <TimeFilter value={timeFilter} onChange={setTimeFilter} layoutIdPrefix="homeFilter" />
+          </div>
         </div>
         <div className="w-full h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -369,29 +373,29 @@ export default function Home() {
 
       {/* Info Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-             {/* Route Explorer Card */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:border-blue-300 transition-colors flex flex-col h-full group">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                <Route size={20} />
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg">Route Explorer</h3>
+        {/* Route Explorer Card */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm transition-colors flex flex-col h-full group">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Route size={20} />
             </div>
-            <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-1">
-              Track individual route indices — live from the database.
-            </p>
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-              <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
-                <Activity size={12} className="text-blue-500" /> {routesData.length > 0 ? routesData.length : 17} active
-              </div>
-              <Link href="/routes" className="text-sm font-bold text-blue-600 group-hover:text-blue-700 flex items-center gap-1">
-                Explore <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
+            <h3 className="font-bold text-gray-900 text-lg">Route Explorer</h3>
           </div>
+          <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-1">
+            Track individual route indices — live from the database.
+          </p>
+          <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+            <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+              <Activity size={12} className="text-blue-500" /> {routesData.length > 0 ? routesData.length : 17} active
+            </div>
+            <Link href="/routes" className="text-sm font-bold text-blue-600 group-hover:text-blue-700 flex items-center gap-1">
+              Explore <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
 
         {/* Booking Curve Card */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:border-blue-300 transition-colors flex flex-col h-full group">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm transition-colors flex flex-col h-full group">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <Activity size={20} />
@@ -411,33 +415,33 @@ export default function Home() {
           </div>
         </div>
 
-          {/* Sector Heatmap Card */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:border-blue-300 transition-colors flex flex-col h-full group">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <MapPin size={20} />
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg">Sector Heatmap</h3>
+        {/* Sector Heatmap Card */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm transition-colors flex flex-col h-full group">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <MapPin size={20} />
             </div>
-            <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-1">
-              Geographic visualization of route-level price indices across India.
-            </p>
-            <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-              <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
-                <Activity size={12} className="text-red-500" /> 4 routes in surge
-              </div>
-              <Link href="/heatmap" className="text-sm font-bold text-blue-600 group-hover:text-blue-700 flex items-center gap-1">
-                Explore <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
+            <h3 className="font-bold text-gray-900 text-lg">Sector Heatmap</h3>
           </div>
+          <p className="text-sm text-gray-600 leading-relaxed mb-6 flex-1">
+            Geographic visualization of route-level price indices across India.
+          </p>
+          <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
+            <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+              <Activity size={12} className="text-red-500" /> 4 routes in surge
+            </div>
+            <Link href="/heatmap" className="text-sm font-bold text-blue-600 group-hover:text-blue-700 flex items-center gap-1">
+              Explore <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Fare by Sector - New Bottom Section */}
       <div className={cardStyle}>
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
-            Fare by sector 
+            Fare by sector
             <span className="text-sm font-normal text-gray-500">(Top 6 of 17)</span>
           </h3>
           <Link href="/routes" className="inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
@@ -446,55 +450,56 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
           {(routesData.length ? routesData : [
-              { route_key: 'DEL-BOM' },
-              { route_key: 'BLR-DEL' },
-              { route_key: 'BOM-BLR' },
-              { route_key: 'CCU-DEL' },
-              { route_key: 'HYD-BOM' },
-              { route_key: 'MAA-DEL' }
-            ]).map((sector, i) => {
-              const flights = sector.latestData ? sector.latestData.observations : (latest ? Math.round(latest.observations / 16) : 42);
-              const fare = sector.latestData ? sector.latestData.mean_fare : null;
-              const indexVal = sector.latestData ? sector.latestData.value : null;
-              const isDone = !!latest;
-              const status = isDone ? 'Done' : 'Scraping';
-              const progress = isDone ? 'w-full' : 'w-3/4';
-              
-              const getIndexColor = (val: number) => {
-                if (val < 100) return 'text-green-600 bg-green-50 border-green-100 px-1 rounded';
-                if (val > 130) return 'text-red-600 bg-red-50 border-red-100 px-1 rounded';
-                if (val > 115) return 'text-orange-500 bg-orange-50 border-orange-100 px-1 rounded';
-                return 'text-blue-600 bg-blue-50 border-blue-100 px-1 rounded';
-              };
-              
-              return (
-            <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-gray-300 transition-colors">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <div className="text-[16px] font-bold text-gray-900 tracking-wide flex items-center gap-2">
-                    <Plane size={18} className="text-gray-700" /> {sector.route_key}
+            { route_key: 'DEL-BOM' },
+            { route_key: 'BLR-DEL' },
+            { route_key: 'BOM-BLR' },
+            { route_key: 'CCU-DEL' },
+            { route_key: 'HYD-BOM' },
+            { route_key: 'MAA-DEL' }
+          ]).map((sector, i) => {
+            const flights = sector.latestData ? sector.latestData.observations : (latest ? Math.round(latest.observations / 16) : 42);
+            const fare = sector.latestData ? sector.latestData.mean_fare : null;
+            const indexVal = sector.latestData ? sector.latestData.value : null;
+            const isDone = !!latest;
+            const status = isDone ? 'Done' : 'Scraping';
+            const progress = isDone ? 'w-full' : 'w-3/4';
+
+            const getIndexColor = (val: number) => {
+              if (val < 100) return 'text-green-600 bg-green-50 border-green-100 px-1 rounded';
+              if (val > 130) return 'text-red-600 bg-red-50 border-red-100 px-1 rounded';
+              if (val > 115) return 'text-orange-500 bg-orange-50 border-orange-100 px-1 rounded';
+              return 'text-blue-600 bg-blue-50 border-blue-100 px-1 rounded';
+            };
+
+            return (
+              <div key={i} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-gray-300 transition-colors">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="text-[16px] font-bold text-gray-900 tracking-wide flex items-center gap-2">
+                      <Plane size={18} className="text-gray-700" /> {sector.route_key}
+                    </div>
+                    <div className="text-[11px] font-semibold text-gray-500 mt-1.5 flex flex-col gap-1 uppercase tracking-wider">
+                      <div className="flex items-center gap-1.5"><Route size={12} className="text-gray-400" /> {flights} flights tracked</div>
+                      {fare && <div className="text-gray-700 font-bold mt-1 tracking-normal capitalize">Avg Fare: ₹{Math.round(fare).toLocaleString()} <span className={`font-medium border ml-1 ${getIndexColor(indexVal)}`}>(Idx: {indexVal.toFixed(1)})</span></div>}
+                    </div>
                   </div>
-                  <div className="text-[11px] font-semibold text-gray-500 mt-1.5 flex flex-col gap-1 uppercase tracking-wider">
-                    <div className="flex items-center gap-1.5"><Route size={12} className="text-gray-400" /> {flights} flights tracked</div>
-                    {fare && <div className="text-gray-700 font-bold mt-1 tracking-normal capitalize">Avg Fare: ₹{Math.round(fare).toLocaleString()} <span className={`font-medium border ml-1 ${getIndexColor(indexVal)}`}>(Idx: {indexVal.toFixed(1)})</span></div>}
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${status === 'Done' ? 'bg-green-50 text-green-700' : status === 'Scraping' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>
+                    {status !== 'Done' && <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${status === 'Scraping' ? 'bg-blue-600' : 'bg-amber-500'}`}></span>}
+                    {status}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <div className="flex justify-between items-center mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    <span>Data Completeness</span>
+                    <span className={status === 'Done' ? 'text-green-600' : 'text-blue-600'}>{status === 'Done' ? '100%' : '75%'}</span>
+                  </div>
+                  <div className="w-full h-1 bg-gray-50 rounded-full overflow-hidden">
+                    <div className={`h-full ${status === 'Done' ? 'bg-green-400' : status === 'Scraping' ? 'bg-blue-400' : 'bg-amber-400'} rounded-full ${progress}`}></div>
                   </div>
                 </div>
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ${status === 'Done' ? 'bg-green-50 text-green-700' : status === 'Scraping' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>
-                  {status !== 'Done' && <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${status === 'Scraping' ? 'bg-blue-600' : 'bg-amber-500'}`}></span>}
-                  {status}
-                </span>
               </div>
-              <div className="flex flex-col">
-                <div className="flex justify-between items-center mb-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                  <span>Data Completeness</span>
-                  <span className={status === 'Done' ? 'text-green-600' : 'text-blue-600'}>{status === 'Done' ? '100%' : '75%'}</span>
-                </div>
-                <div className="w-full h-1 bg-gray-50 rounded-full overflow-hidden">
-                  <div className={`h-full ${status === 'Done' ? 'bg-green-400' : status === 'Scraping' ? 'bg-blue-400' : 'bg-amber-400'} rounded-full ${progress}`}></div>
-                </div>
-              </div>
-            </div>
-          ); })}
+            );
+          })}
         </div>
         <div className="text-sm text-gray-500 mt-2">
           Live route observations from the latest pipeline run
@@ -502,38 +507,38 @@ export default function Home() {
       </div>
 
       {isLogsOpen && mounted && createPortal(
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden border border-gray-200 flex flex-col">
-              <div className="flex justify-between items-center px-5 py-4 border-b border-blue-100 bg-blue-50">
-                <div className="flex items-center gap-3">
-                  <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm tracking-wide">
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    Live Pipeline Logs
-                  </h2>
-                </div>
-                <button onClick={() => setIsLogsOpen(false)} className="text-gray-400 hover:text-gray-900 transition-colors p-1 rounded-full hover:bg-gray-200">
-                  <X size={18} />
-                </button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden border border-gray-200 flex flex-col">
+            <div className="flex justify-between items-center px-5 py-4 border-b border-blue-100 bg-blue-50">
+              <div className="flex items-center gap-3">
+                <h2 className="font-bold text-gray-900 flex items-center gap-2 text-sm tracking-wide">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  Live Pipeline Logs
+                </h2>
               </div>
-              <div className="p-5 bg-white text-xs font-mono overflow-y-auto h-[400px] flex flex-col gap-1.5 custom-scrollbar">
-                {PIPELINE_LOGS.slice(0, visibleLogs).map((log, i) => (
-                  <div key={i} className="flex items-start gap-3 hover:bg-gray-50 px-2 py-1 rounded transition-colors -mx-2 border border-transparent hover:border-gray-100">
-                    <span className="text-gray-400 shrink-0">2026-09-02 {log.time}</span>
-                    <span className={`shrink-0 font-bold w-10 ${log.level === 'INFO' ? 'text-blue-600' : 'text-amber-600'}`}>{log.level}</span>
-                    <span className="text-purple-600 shrink-0 w-24">[{log.module}]</span>
-                    <span className={`${log.highlight ? 'text-emerald-700 font-semibold' : log.level === 'WARN' ? 'text-amber-700 font-medium' : 'text-gray-700'}`}>{log.msg}</span>
-                  </div>
-                ))}
-                {visibleLogs < PIPELINE_LOGS.length && (
-                  <div className="flex items-center gap-2 text-gray-400 mt-2 px-2 animate-pulse font-bold text-sm">
-                    <span>_</span>
-                  </div>
-                )}
-              </div>
+              <button onClick={() => setIsLogsOpen(false)} className="text-gray-400 hover:text-gray-900 transition-colors p-1 rounded-full hover:bg-gray-200">
+                <X size={18} />
+              </button>
             </div>
-          </div>,
-          document.body
-        )}
+            <div className="p-5 bg-white text-xs font-mono overflow-y-auto h-[400px] flex flex-col gap-1.5 custom-scrollbar">
+              {PIPELINE_LOGS.slice(0, visibleLogs).map((log, i) => (
+                <div key={i} className="flex items-start gap-3 hover:bg-gray-50 px-2 py-1 rounded transition-colors -mx-2 border border-transparent hover:border-gray-100">
+                  <span className="text-gray-400 shrink-0">2026-09-02 {log.time}</span>
+                  <span className={`shrink-0 font-bold w-10 ${log.level === 'INFO' ? 'text-blue-600' : 'text-amber-600'}`}>{log.level}</span>
+                  <span className="text-purple-600 shrink-0 w-24">[{log.module}]</span>
+                  <span className={`${log.highlight ? 'text-emerald-700 font-semibold' : log.level === 'WARN' ? 'text-amber-700 font-medium' : 'text-gray-700'}`}>{log.msg}</span>
+                </div>
+              ))}
+              {visibleLogs < PIPELINE_LOGS.length && (
+                <div className="flex items-center gap-2 text-gray-400 mt-2 px-2 animate-pulse font-bold text-sm">
+                  <span>_</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
     </div>
   );
