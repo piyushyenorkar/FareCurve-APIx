@@ -61,6 +61,7 @@ async def run_scraping(allowed_only: bool = True, routes=None) -> list[dict]:
 
 
 def store_quotes(quotes: list[dict], run_uid: str) -> int:
+    from apix.db.models import RawFareSnapshot
     stored = 0
     today = date.today()
     with session_scope() as s:
@@ -68,8 +69,35 @@ def store_quotes(quotes: list[dict], run_uid: str) -> int:
             if not q.get("total_fare"):
                 continue
             route_key = f"{q['origin']}-{q['destination']}"
-            obs = CleanedFare(
+            
+            # Create RawFareSnapshot first to get the ID
+            raw_obs = RawFareSnapshot(
                 source_slug=q["source_slug"],
+                source_type=q.get("source_type", "airline"),
+                provenance=q.get("provenance", "LIVE_SCRAPE"),
+                origin=q["origin"],
+                destination=q["destination"],
+                route_key=route_key,
+                travel_date=q["travel_date"] if isinstance(q["travel_date"], date) else date.fromisoformat(q["travel_date"]),
+                observation_date=today,
+                observed_at=datetime.now(timezone.utc),
+                booking_window_days=q["booking_window"],
+                carrier_code=q.get("carrier_code"),
+                flight_number=q.get("flight_number"),
+                fare_class=q.get("fare_class"),
+                base_fare=q.get("base_fare"),
+                taxes=q.get("taxes"),
+                convenience_fee=q.get("convenience_fee"),
+                total_fare=q["total_fare"],
+                availability_status=q.get("availability", "available"),
+            )
+            s.add(raw_obs)
+            s.flush()  # Get raw_obs.id
+            
+            obs = CleanedFare(
+                raw_id=raw_obs.id,
+                source_slug=q["source_slug"],
+                source_type=q.get("source_type", "airline"),
                 provenance=q.get("provenance", "LIVE_SCRAPE"),
                 origin=q["origin"],
                 destination=q["destination"],

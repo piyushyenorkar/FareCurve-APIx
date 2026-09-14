@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
+import { formatDate } from "../lib/formatDate";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import { TrendingUp, TrendingDown, Minus, Plane } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
@@ -56,7 +57,7 @@ export default function ForecastPage() {
         
         if (Array.isArray(fcst.history)) {
           const recentHist = fcst.history.map((d: any) => ({
-            date: d.date?.slice(5) || d.date,
+            date: formatDate(d.date),
             actual: d.actual,
             type: "actual"
           }));
@@ -65,7 +66,7 @@ export default function ForecastPage() {
         
         if (Array.isArray(fcst.forecast)) {
           setForecastData(fcst.forecast.map((d: any) => ({
-            date: d.date?.slice(5) || d.date,
+            date: formatDate(d.date),
             predicted: d.predicted_fare,
             type: "forecast"
           })));
@@ -103,7 +104,7 @@ export default function ForecastPage() {
         <span className="gradient-text">Price Forecast & Buy/Wait Signal <InfoTooltip text="Algorithmic recommendation on whether to purchase now or wait for a price drop." /></span>
       </h1>
       <p style={{color:"var(--text-muted)",fontSize:"0.875rem",marginBottom:"2rem"}}>
-        Holt-Winters exponential smoothing <InfoTooltip text="A time-series forecasting algorithm that accounts for trends and seasonality." /> with 7-day horizon
+        Holt-Winters exponential smoothing with 7-day horizon <InfoTooltip text="A time-series forecasting algorithm that accounts for trends and seasonality." />
       </p>
       <div style={{display:"flex",gap:"0.5rem",marginBottom:"2rem",flexWrap:"wrap"}}>
         {ROUTES.map(r=>(
@@ -169,10 +170,21 @@ export default function ForecastPage() {
       <div className="glass-card" style={{ marginTop: "2rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
           <div>
-            <h2 style={{ fontSize: "1.1rem", fontWeight: 700 }}>Fare Calendar � Next 14 Days</h2>
-            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "4px" }}>
-              Projected daily fares for {route} based on historical patterns. Green = cheapest, Red = most expensive.
-            </p>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 700 }}>Fare Calendar — Next 14 Days</h2>
+            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "6px", display: "flex", alignItems: "center", gap: "16px" }}>
+              <span>Projected daily fares for {route} based on historical patterns.</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", borderLeft: "1px solid #e2e8f0", paddingLeft: "16px" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 400, color: "#10b981", fontSize: "14px" }}>
+                  <span style={{ display: "inline-block", width: "14px", minWidth: "14px", height: "14px", background: "#10b981", flexShrink: 0 }}></span> Cheapest
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 400, color: "#f59e0b", fontSize: "14px" }}>
+                  <span style={{ display: "inline-block", width: "14px", minWidth: "14px", height: "14px", background: "#f59e0b", flexShrink: 0 }}></span> Average
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 400, color: "#ef4444", fontSize: "14px" }}>
+                  <span style={{ display: "inline-block", width: "14px", minWidth: "14px", height: "14px", background: "#ef4444", flexShrink: 0 }}></span> Peak
+                </span>
+              </div>
+            </div>
           </div>
         </div>
         <FareCalendar route={route} forecastData={forecastData} currentAvg={current} />
@@ -238,12 +250,14 @@ function FareCalendar({ route, forecastData, currentAvg }: { route: string; fore
             textAlign: "center", cursor: "pointer", transition: "all 0.2s",
             border: isToday ? "2px solid #3b82f6" : isCheapest ? "2px solid #10b981" : isMostExpensive ? "2px solid #ef4444" : "1px solid transparent",
             position: "relative",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
           }} className="hover:scale-[1.05] hover:shadow-md">
-            <div style={{ fontSize: "0.7rem", fontWeight: 600, marginBottom: "4px", opacity: 0.7 }}>
-              {d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+            {isToday && <div style={{ position: "absolute", top: -8, right: -8, background: "#3b82f6", color: "#fff", fontSize: "0.6rem", padding: "2px 4px", borderRadius: "4px", fontWeight: 700 }}>TODAY</div>}
+            <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "4px", opacity: 0.8 }}>
+              {formatDate(d.toISOString())}
             </div>
-            <div style={{ fontSize: "1rem", fontWeight: 800 }}>
-              ?{price.toLocaleString()}
+            <div style={{ fontSize: "0.95rem", fontWeight: 800 }}>
+              ₹{price.toLocaleString()}
             </div>
             {isCheapest && <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "#10b981", marginTop: "2px" }}>BEST</div>}
             {isMostExpensive && <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "#ef4444", marginTop: "2px" }}>PEAK</div>}

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { api } from "../lib/api";
-import { Send, Sparkles, User, Loader2, Info } from "lucide-react";
+import { Send, Bot, User, Loader2, Info } from "lucide-react";
 
 export default function AIPage() {
   const [messages, setMessages] = useState<{role: string, content: string}[]>([
@@ -50,7 +50,7 @@ export default function AIPage() {
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 64px)", maxWidth: "900px", margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}>
         <div style={{ background: "linear-gradient(135deg, #3b82f6, #06b6d4)", padding: "8px", borderRadius: "12px", color: "#fff" }}>
-          <Sparkles size={24} />
+          <Bot size={30} />
         </div>
         <div>
           <h1 style={{ fontSize: "1.75rem", fontWeight: 800, lineHeight: 1 }}>FareCurve AI <Info size={16} style={{ display: "inline", color: "#94a3b8", marginLeft: "8px", verticalAlign: "middle" }} /></h1>
@@ -69,7 +69,7 @@ export default function AIPage() {
                 background: msg.role === "user" ? "#e2e8f0" : "linear-gradient(135deg, #3b82f6, #06b6d4)",
                 display: "flex", alignItems: "center", justifyContent: "center", color: msg.role === "user" ? "#64748b" : "#fff"
               }}>
-                {msg.role === "user" ? <User size={18} /> : <Sparkles size={18} />}
+                {msg.role === "user" ? <User size={18} /> : <Bot size={22} />}
               </div>
               <div style={{
                 background: msg.role === "user" ? "#f1f5f9" : "rgba(59, 130, 246, 0.08)",
@@ -88,7 +88,7 @@ export default function AIPage() {
                 background: "linear-gradient(135deg, #3b82f6, #06b6d4)",
                 display: "flex", alignItems: "center", justifyContent: "center", color: "#fff"
               }}>
-                <Sparkles size={18} />
+                <Bot size={22} />
               </div>
               <div style={{ padding: "1rem", color: "#64748b", display: "flex", alignItems: "center", gap: "8px" }}>
                 <Loader2 size={16} className="animate-spin" /> Thinking...

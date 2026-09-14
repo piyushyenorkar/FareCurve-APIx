@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../lib/api";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { InfoTooltip } from "../components/InfoTooltip";
+import { formatDate } from "../lib/formatDate";
 
 export default function QualityPage() {
   const [current, setCurrent] = useState<any>(null);
@@ -65,7 +66,7 @@ export default function QualityPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={history}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
-                  <XAxis dataKey="date" tick={{fill:"#64748b",fontSize:10}} tickFormatter={(v:string)=>v.slice(5)}/>
+                  <XAxis dataKey="date" tick={{fill:"#64748b",fontSize:10}} tickFormatter={formatDate}/>
                   <YAxis tick={{fill:"#64748b",fontSize:11}} tickFormatter={v=>v+"%"}/>
                   <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v:any)=>[v+"%","Coverage"]}/>
                   <Bar dataKey="coverage_pct" fill="#3b82f6" radius={[4,4,0,0]}/>

@@ -10,31 +10,37 @@ const WINDOW_OPTIONS = [{value: "ALL", label: "All Booking Windows"}, {value: "T
 const ROUTES = ["DEL-BOM", "DEL-BLR", "BOM-BLR", "DEL-CCU", "BLR-HYD", "MAA-DEL", "DEL-HYD", "BOM-CCU", "DEL-PNQ", "DEL-AMD", "BOM-GOI", "DEL-GOI", "DEL-LKO", "DEL-SXR", "DEL-JAI", "DEL-MAA"];
 
 const CARRIER_MAP: Record<string, string> = {
-  "6E": "IndiGo",
-  "UK": "Vistara",
-  "AI": "Air India",
-  "IX": "AI Express",
-  "SG": "SpiceJet",
-  "QP": "Akasa Air",
-  "I5": "AIX Connect",
+  "6E": "IndiGo", "indigo": "IndiGo",
+  "UK": "Vistara", "vistara": "Vistara",
+  "AI": "Air India", "airindia": "Air India",
+  "IX": "AI Express", "airindiaexpress": "AI Express",
+  "SG": "SpiceJet", "spicejet": "SpiceJet",
+  "QP": "Akasa Air", "akasa": "Akasa Air",
+  "I5": "AIX Connect", "aixconnect": "AIX Connect",
   "XX": "Vistara",
-  "MMT": "MakeMyTrip",
-  "GOIBIBO": "Goibibo",
-  "IXIGO": "Ixigo",
-  "EASEMYTRIP": "EaseMyTrip",
-  "CLEARTRIP": "Cleartrip",
-  "YATRA": "Yatra",
-  "PAYTM": "Paytm"
+  "MMT": "MakeMyTrip", "makemytrip": "MakeMyTrip",
+  "GOIBIBO": "Goibibo", "goibibo": "Goibibo",
+  "IXIGO": "Ixigo", "ixigo": "Ixigo",
+  "EASEMYTRIP": "EaseMyTrip", "easemytrip": "EaseMyTrip",
+  "CLEARTRIP": "Cleartrip", "cleartrip": "Cleartrip",
+  "YATRA": "Yatra", "yatra": "Yatra",
+  "PAYTM": "Paytm", "paytm": "Paytm"
 };
 
 // Returns a logo URL if available, else a generic placeholder or null
 const getLogoUrl = (code: string) => {
   const c = code.toUpperCase();
-  if (c === "UK") return "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Vistara_Logo.svg/1200px-Vistara_Logo.svg.png";
-  if (["6E", "UK", "AI", "IX", "SG", "QP", "I5"].includes(c)) return `https://images.kiwi.com/airlines/32/${c}.png`;
-  if (c === "MMT") return "https://imgak.mmtcdn.com/pwa_v3/pwa_hotel_assets/header/logo@2x.png";
+  const iataMap: Record<string, string> = {
+    "INDIGO": "6E", "AIRINDIA": "AI", "AIRINDIAEXPRESS": "IX", "SPICEJET": "SG", "AKASA": "QP", "AIXCONNECT": "I5"
+  };
+  const iata = iataMap[c] || c;
+  if (["6E", "UK", "AI", "IX", "SG", "QP", "I5"].includes(iata)) return `https://images.kiwi.com/airlines/32/${iata}.png`;
+  if (c === "MMT" || c === "MAKEMYTRIP") return "https://imgak.mmtcdn.com/pwa_v3/pwa_hotel_assets/header/logo@2x.png";
   if (c === "GOIBIBO") return "https://jsak.goibibo.com/pwa_v3/pwa_hotel_assets/header/logo@2x.png"; // Mockish
   if (c === "IXIGO") return "https://www.ixigo.com/favicon.ico"; // Mockish
+  if (c === "EASEMYTRIP") return "https://www.easemytrip.com/favicon.ico";
+  if (c === "CLEARTRIP") return "https://www.cleartrip.com/favicon.ico";
+  if (c === "YATRA") return "https://www.yatra.com/favicon.ico";
   return null;
 };
 
@@ -42,8 +48,7 @@ const getLogoUrl = (code: string) => {
 const CustomTick = (props: any) => {
   const { x, y, payload } = props;
   const logo = getLogoUrl(payload.value);
-  const baseName = CARRIER_MAP[payload.value] || payload.value;
-  const name = `${baseName} (${payload.value})`;
+  const name = CARRIER_MAP[payload.value] || payload.value.charAt(0).toUpperCase() + payload.value.slice(1);
 
   return (
     <g transform={`translate(${x},${y})`}>
@@ -63,7 +68,7 @@ const CustomTick = (props: any) => {
         dy={0}
         textAnchor="middle"
         fill="#64748b"
-        fontSize={11}
+        fontSize={10}
         fontWeight={600}
       >
         {name}
@@ -195,10 +200,26 @@ export default function FaresPage() {
               <XAxis dataKey="carrier" tick={<CustomTick />} tickMargin={10} interval={0} />
               <YAxis tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => "₹" + v} />
               <Tooltip cursor={{fill: "transparent"}} contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }} itemStyle={{ color: "#334155", fontSize: "13px", fontWeight: 500, padding: "2px 0" }} labelStyle={{ color: "#64748b", fontSize: "11px", textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }} formatter={(v: any, n: any) => ["₹" + Number(v).toLocaleString(), n]} labelFormatter={(label) => CARRIER_MAP[label as string] || label} />
-              <Legend verticalAlign="top" height={36} />
-              <Bar dataKey="base" stackId="a" fill="#3b82f6" name="Base Fare" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="taxes" stackId="a" fill="#f59e0b" name="Taxes & Charges" />
-              <Bar dataKey="fees" stackId="a" fill="#f43f5e" name="Convenience Fee" radius={[4, 4, 0, 0]} />
+              <Legend 
+                verticalAlign="top" 
+                height={36} 
+                content={(props: any) => {
+                  const { payload } = props;
+                  return (
+                    <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", justifyContent: "center", gap: "24px", paddingBottom: "12px" }}>
+                      {payload.map((entry: any, index: number) => (
+                        <li key={`item-${index}`} style={{ display: "flex", alignItems: "center", gap: "8px", color: entry.color, fontSize: "14px", fontWeight: 400 }}>
+                          <span style={{ display: "inline-block", width: "14px", minWidth: "14px", height: "14px", backgroundColor: entry.color, flexShrink: 0 }}></span>
+                          {entry.value}
+                        </li>
+                      ))}
+                    </ul>
+                  );
+                }}
+              />
+              <Bar dataKey="base" stackId="a" fill="#3b82f6" name="Base Fare" radius={[0, 0, 0, 0]} legendType="square" />
+              <Bar dataKey="taxes" stackId="a" fill="#f59e0b" name="Taxes & Charges" legendType="square" />
+              <Bar dataKey="fees" stackId="a" fill="#f43f5e" name="Convenience Fee" radius={[4, 4, 0, 0]} legendType="square" />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -209,10 +230,10 @@ export default function FaresPage() {
           {currentData.map(c => {
             const logoUrl = getLogoUrl(c.carrier);
             return (
-              <div key={c.carrier} className="glass-card" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                  {logoUrl && <img src={logoUrl} alt={c.carrier} style={{ height: "20px", objectFit: "contain" }} />}
-                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#0f172a" }}>{CARRIER_MAP[c.carrier] || c.carrier}</div>
+              <div key={c.carrier} className="glass-card" style={{ flexShrink: 0, minWidth: "140px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px" }}>
+                  {logoUrl && <img src={logoUrl} alt={c.carrier} style={{ height: "24px", maxWidth: "80px", objectFit: "contain" }} />}
+                  <div style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", marginTop: "4px" }}>{CARRIER_MAP[c.carrier] || c.carrier.charAt(0).toUpperCase() + c.carrier.slice(1)}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#3b82f6" }}>₹{c.total?.toLocaleString()}</div>

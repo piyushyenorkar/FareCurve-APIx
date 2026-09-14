@@ -10,7 +10,7 @@ const AIRPORTS = [
   { code: "ATQ", city: "Amritsar" }, { code: "IXB", city: "Bagdogra" }
 ];
 
-export function AirportSearch({ value, onChange, placeholder }: { value: string, onChange: (val: string) => void, placeholder: string }) {
+export function AirportSearch({ value, onChange, placeholder, allowedCodes }: { value: string, onChange: (val: string) => void, placeholder: string, allowedCodes?: string[] }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(value);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -29,10 +29,11 @@ export function AirportSearch({ value, onChange, placeholder }: { value: string,
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filtered = AIRPORTS.filter(a => 
-    a.city.toLowerCase().includes(search.toLowerCase()) || 
-    a.code.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = AIRPORTS.filter(a => {
+    if (allowedCodes && !allowedCodes.includes(a.code)) return false;
+    return a.city.toLowerCase().includes(search.toLowerCase()) || 
+           a.code.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div ref={wrapperRef} style={{ position: "relative" }}>

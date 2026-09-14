@@ -113,3 +113,8 @@ h1 {
 .map-tiles-light {
   filter: grayscale(100%) opacity(70%);
 }
+
+/* Fix 1px white lines between Leaflet tiles on fractional scaling/high DPI displays */
+.leaflet-container .leaflet-tile-pane img.leaflet-tile {
+  transform: scale(1.005);
+}

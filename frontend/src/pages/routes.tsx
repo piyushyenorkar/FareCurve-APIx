@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
+import { formatDate } from "../lib/formatDate";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Plane, Filter, Search } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
@@ -66,7 +67,7 @@ export default function RoutesPage() {
     api.indexRoute(origin, dest, airline, ota).then((data: any) => {
       if (Array.isArray(data)) {
         setHistory(data.map((d: any) => ({
-          date: d.date?.slice(5) || "",
+          date: formatDate(d.date),
           value: d.value,
           mean_fare: d.mean_fare,
           observations: d.observations,
@@ -112,7 +113,7 @@ export default function RoutesPage() {
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <Search size={14} style={{ color: "#64748b" }} />
           <AirportSearch placeholder="Origin (DEL)" value={customOrigin} onChange={setCustomOrigin} />
-          <span style={{ color: "#64748b", fontSize: "0.8rem" }}>→</span>
+          <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
           <AirportSearch placeholder="Dest (BOM)" value={customDest} onChange={setCustomDest} />
           <button onClick={handleCustomRoute} 
             style={{ padding: "0.5rem 1rem", borderRadius: "999px", background: "#0f172a", color: "#fff", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", border: "none" }}>

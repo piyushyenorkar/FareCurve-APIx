@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { TimeFilter } from "../components/TimeFilter";
+import { formatDate } from "../lib/formatDate";
 
 export default function ATFPage() {
   const [data, setData] = useState<any>(null);
@@ -21,7 +22,7 @@ export default function ATFPage() {
     const realAtf = data.atf_history?.[i]?.value;
     const mockAtf = 98000 + (Math.sin(i * 0.5) * 4000) + (Math.cos(i * 1.2) * 2000);
     return {
-      date: item.date?.slice(5) || "",
+      date: formatDate(item.date),
       apix: item.value,
       atf: realAtf || Math.round(mockAtf),
     };
