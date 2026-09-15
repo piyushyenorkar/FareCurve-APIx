@@ -10,6 +10,20 @@ import { TimeFilter } from "../components/TimeFilter";
 import { AirportSearch } from "../components/AirportSearch";
 import { ChartAIButton } from "../components/ChartAIButton";
 
+const CustomTick = (props: any) => {
+  const { x, y, payload } = props;
+  const isToday = payload.value.includes('(Today)');
+  const text = payload.value.replace(' (Today)', '');
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={16} textAnchor="middle" fill="#64748b" fontSize={11}>
+        <tspan x="0" dy="0">{text}</tspan>
+        {isToday && <tspan x="0" dy="14" fill="#3b82f6" fontWeight="bold">Today</tspan>}
+      </text>
+    </g>
+  );
+};
+
 export default function Home() {
   const [latest, setLatest] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -63,7 +77,7 @@ export default function Home() {
       if (d && d.value) setLatest(d);
     }).catch(() => { });
 
-    api.indexOverall(30).then((d: any) => {
+    api.indexOverall(timeFilter === '7D' ? 7 : 31).then((d: any) => {
       if (d) setHistory(d); // Backend already returns chronological, do not reverse again
     }).catch(() => { });
 
@@ -139,15 +153,14 @@ export default function Home() {
 
   // Ensure the latest value is appended to the chart so numbers match the headline
   if (latest && fullData.length > 0) {
-    const lastRawDate = fullData[fullData.length - 1].rawDate;
-    const latestDate = latest.date || latest.computation_date || 'Today';
-    const formattedLatest = formatDate(latestDate);
+    const formattedLatest = formatDate(new Date().toISOString());
+    const lastDateString = fullData[fullData.length - 1].date;
 
-    // If the latest date is different from the last history point, append it
-    if (lastRawDate !== latestDate && formattedLatest !== fullData[fullData.length - 1].date) {
-      fullData.push({ date: `${formattedLatest} (Today)`, value: latest.value, rawDate: latestDate });
+    if (lastDateString !== formattedLatest) {
+      // Keep the last data point, and append a new one for today carrying forward the latest value
+      fullData.push({ date: `${formattedLatest} (Today)`, value: latest.value, rawDate: new Date().toISOString() });
     } else {
-      // If dates match, ensure the value is exactly what the headline shows
+      // Overwrite the label to include '(Today)' if it already is today
       fullData[fullData.length - 1] = {
         ...fullData[fullData.length - 1],
         value: latest.value,
@@ -160,8 +173,19 @@ export default function Home() {
   if (timeFilter === '7D') {
     chartData = fullData.length > 7 ? fullData.slice(-7) : fullData;
   } else if (timeFilter === '30D') {
-    chartData = fullData.length > 30 ? fullData.slice(-30) : fullData;
+    chartData = [...fullData];
+    while (chartData.length > 0 && chartData.length < 31) {
+      const firstDate = new Date(chartData[0].rawDate);
+      firstDate.setDate(firstDate.getDate() - 1);
+      chartData.unshift({
+        date: formatDate(firstDate.toISOString()),
+        value: null,
+        rawDate: firstDate.toISOString()
+      });
+    }
+    chartData = chartData.length > 31 ? chartData.slice(-31) : chartData;
   }
+  console.log("Forced HMR reload");
 
   return (
     <div className="mt-2 font-sans relative">
@@ -242,7 +266,7 @@ export default function Home() {
                                     {/* Controls Row */}
       <div className="flex flex-col xl:flex-row justify-between items-center gap-4 mb-8 w-full">
         {/* Structured Route Search */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }} className="w-full xl:w-auto">
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <AirportSearch placeholder="Origin (DEL)" value={origin} onChange={setOrigin} />
           <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
           <AirportSearch placeholder="Dest (BOM)" value={dest} onChange={setDest} />
@@ -358,9 +382,9 @@ export default function Home() {
         </div>
         <div className="w-full h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-              <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} />
+              <XAxis dataKey="date" tickLine={true} tickMargin={10} tick={<CustomTick />} height={60} interval={timeFilter === '7D' ? 0 : 1} />
               <YAxis tick={{ fill: "#64748b", fontSize: 11 }} domain={["auto", "auto"]} />
               <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v: any, n: any) => [Number(v).toFixed(2), n]} />
               <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} />

@@ -9,6 +9,20 @@ import { AirportSearch } from "../components/AirportSearch";
 import { CustomDropdown } from "../components/CustomDropdown";
 import { ChartAIButton } from "../components/ChartAIButton";
 
+const CustomTick = (props: any) => {
+  const { x, y, payload } = props;
+  const isToday = payload.value.includes('(Today)');
+  const text = payload.value.replace(' (Today)', '');
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={16} textAnchor="middle" fill="#64748b" fontSize={11}>
+        <tspan x="0" dy="0">{text}</tspan>
+        {isToday && <tspan x="0" dy="14" fill="#3b82f6" fontWeight="bold">Today</tspan>}
+      </text>
+    </g>
+  );
+};
+
 const ROUTES = ["DEL-BOM", "DEL-BLR", "BOM-BLR", "DEL-CCU", "BLR-HYD", "MAA-DEL", "DEL-HYD", "BOM-CCU", "DEL-PNQ", "DEL-AMD", "BOM-GOI", "DEL-GOI", "DEL-LKO", "DEL-SXR", "DEL-JAI", "DEL-MAA"];
 const COLORS = ["#3b82f6", "#8b5cf6", "#f43f5e", "#f97316", "#10b981", "#06b6d4", "#eab308", "#6366f1"];
 
@@ -67,12 +81,24 @@ export default function RoutesPage() {
     const [origin, dest] = selected.split("-");
     api.indexRoute(origin, dest, airline, ota).then((data: any) => {
       if (Array.isArray(data)) {
-        setHistory(data.map((d: any) => ({
+        let fullData = data.map((d: any) => ({
           date: formatDate(d.date),
           value: d.value,
           mean_fare: d.mean_fare,
           observations: d.observations,
-        })));
+          rawDate: d.date
+        }));
+
+        if (fullData.length > 0) {
+          const formattedLatest = formatDate(new Date().toISOString());
+          const lastDateString = fullData[fullData.length - 1].date;
+          if (lastDateString !== formattedLatest) {
+            fullData.push({ ...fullData[fullData.length - 1], date: `${formattedLatest} (Today)`, rawDate: new Date().toISOString() });
+          } else {
+            fullData[fullData.length - 1].date = `${formattedLatest} (Today)`;
+          }
+        }
+        setHistory(fullData);
       }
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -81,8 +107,21 @@ export default function RoutesPage() {
   const latest = history.length > 0 ? history[history.length - 1] : null;
 
   let chartData = history;
-  if (timeFilter === '7D') chartData = history.length > 7 ? history.slice(-7) : history;
-  else if (timeFilter === '30D') chartData = history.length > 30 ? history.slice(-30) : history;
+  if (timeFilter === '7D') {
+    chartData = history.length > 7 ? history.slice(-7) : history;
+  } else if (timeFilter === '30D') {
+    chartData = [...history];
+    while (chartData.length > 0 && chartData.length < 31) {
+      const firstDate = new Date(chartData[0].rawDate);
+      firstDate.setDate(firstDate.getDate() - 1);
+      chartData.unshift({
+        date: formatDate(firstDate.toISOString()),
+        value: null,
+        rawDate: firstDate.toISOString()
+      });
+    }
+    chartData = chartData.length > 31 ? chartData.slice(-31) : chartData;
+  }
 
   return (
     <div>
@@ -179,9 +218,9 @@ export default function RoutesPage() {
           <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)" }}>No historical data for this route.</div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
+            <LineChart data={chartData} margin={{ right: 30 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-              <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} />
+              <XAxis dataKey="date" tickLine={true} tickMargin={10} tick={<CustomTick />} height={60} interval={timeFilter === '7D' ? 0 : 1} />
               <YAxis tick={{ fill: "#64748b", fontSize: 11 }} domain={["auto", "auto"]} />
               <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v: any, n: any) => [Number(v).toFixed(2), n]} />
               <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} />

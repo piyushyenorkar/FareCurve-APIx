@@ -6,6 +6,20 @@ import { TimeFilter } from "../components/TimeFilter";
 import { ChartAIButton } from "../components/ChartAIButton";
 import { formatDate } from "../lib/formatDate";
 
+const CustomTick = (props: any) => {
+  const { x, y, payload } = props;
+  const isToday = payload.value.includes('(Today)');
+  const text = payload.value.replace(' (Today)', '');
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={16} textAnchor="middle" fill="#64748b" fontSize={11}>
+        <tspan x="0" dy="0">{text}</tspan>
+        {isToday && <tspan x="0" dy="14" fill="#3b82f6" fontWeight="bold">Today</tspan>}
+      </text>
+    </g>
+  );
+};
+
 export default function ATFPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -29,9 +43,32 @@ export default function ATFPage() {
     };
   }) || [];
 
+  if (fullData.length > 0) {
+    const formattedLatest = formatDate(new Date().toISOString());
+    const lastDateString = fullData[fullData.length - 1].date;
+    if (lastDateString !== formattedLatest) {
+      fullData.push({ ...fullData[fullData.length - 1], date: `${formattedLatest} (Today)` });
+    } else {
+      fullData[fullData.length - 1].date = `${formattedLatest} (Today)`;
+    }
+  }
+
   let chartData = fullData;
-  if (timeFilter === '7D') chartData = fullData.length > 7 ? fullData.slice(-7) : fullData;
-  else if (timeFilter === '30D') chartData = fullData.length > 30 ? fullData.slice(-30) : fullData;
+  if (timeFilter === '7D') {
+    chartData = fullData.length > 7 ? fullData.slice(-7) : fullData;
+  } else if (timeFilter === '30D') {
+    chartData = [...fullData];
+    while (chartData.length > 0 && chartData.length < 31) {
+      const firstDate = new Date(chartData[0].rawDate);
+      firstDate.setDate(firstDate.getDate() - 1);
+      chartData.unshift({
+        date: formatDate(firstDate.toISOString()),
+        value: null,
+        rawDate: firstDate.toISOString()
+      });
+    }
+    chartData = chartData.length > 31 ? chartData.slice(-31) : chartData;
+  }
 
   return (
     <div>
@@ -65,9 +102,9 @@ export default function ATFPage() {
             </div>
           </div>
           <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={chartData}>
+            <LineChart data={chartData} margin={{ right: 30 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
-              <XAxis dataKey="date" tick={{fill:"#64748b",fontSize:11}}/>
+              <XAxis dataKey="date" tickLine={true} tickMargin={10} tick={<CustomTick />} height={60} interval={timeFilter === '7D' ? 0 : 1} />
               <YAxis yAxisId="left" tick={{fill:"#3b82f6",fontSize:11}} label={{value:"FareCurve Index",angle:-90,position:"insideLeft",style:{fill:"#3b82f6"}}}/>
               <YAxis yAxisId="right" orientation="right" tick={{fill:"#f97316",fontSize:11}} label={{value:"ATF (₹/kl)",angle:90,position:"insideRight",style:{fill:"#f97316"}}}/>
               <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }}/>
