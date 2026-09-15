@@ -77,7 +77,7 @@ def generate_reconstructed_fares(
         if not spec:
             continue
 
-        carriers = spec.carriers if spec.carriers else ("6E", "UK", "AI", "IX", "SG", "QP", "I5")
+        carriers = spec.carriers if spec.carriers else ("6E", "UK", "AI", "IX", "SG", "QP")
 
         for route in ROUTE_BASKET:
             route_key = f"{route.origin}-{route.destination}"
@@ -96,10 +96,16 @@ def generate_reconstructed_fares(
                     fare = base * window_mult * carrier_factor * market_adj * noise
                     fare = round(max(500, min(50000, fare)), 0)
 
-                    # Split into base + taxes (typical 18% GST + airport charges)
+                    # Split into base + taxes + convenience fee (typical 300-400 INR per pax)
+                    convenience_fee = round(np.random.uniform(300, 400), 0)
+                    base_fare_and_taxes = fare - convenience_fee
+                    if base_fare_and_taxes < 0:
+                        base_fare_and_taxes = fare * 0.9
+                        convenience_fee = fare * 0.1
+
                     tax_rate = 0.18 + np.random.uniform(0.02, 0.08)  # 20-26% total
-                    base_fare = round(fare / (1 + tax_rate), 0)
-                    taxes = round(fare - base_fare, 0)
+                    base_fare = round(base_fare_and_taxes / (1 + tax_rate), 0)
+                    taxes = round(base_fare_and_taxes - base_fare, 0)
 
                     reconstructed.append(FareQuote(
                         source_slug=slug,
@@ -111,6 +117,7 @@ def generate_reconstructed_fares(
                         carrier_code=carrier,
                         base_fare=base_fare,
                         taxes=taxes,
+                        convenience_fee=convenience_fee,
                         total_fare=fare,
                         fare_class="economy",
                         provenance=Provenance.RECONSTRUCTED.value,
