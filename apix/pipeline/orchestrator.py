@@ -65,15 +65,14 @@ def store_quotes(quotes: list[dict], run_uid: str) -> int:
     stored = 0
     today = date.today()
     with session_scope() as s:
-        for q in quotes:
-            if not q.get("total_fare"):
-                continue
+        valid_quotes = [q for q in quotes if q.get("total_fare")]
+        
+        raw_objects = []
+        for q in valid_quotes:
             route_key = f"{q['origin']}-{q['destination']}"
-            
-            # Create RawFareSnapshot first to get the ID
-            raw_obs = RawFareSnapshot(
+            raw_objects.append(RawFareSnapshot(
                 source_slug=q["source_slug"],
-                source_type=q.get("source_type", "airline"),
+                source_type=q.get("source_type") or SOURCES_BY_SLUG[q["source_slug"]].source_type.value,
                 provenance=q.get("provenance", "LIVE_SCRAPE"),
                 origin=q["origin"],
                 destination=q["destination"],
@@ -90,35 +89,40 @@ def store_quotes(quotes: list[dict], run_uid: str) -> int:
                 convenience_fee=q.get("convenience_fee"),
                 total_fare=q["total_fare"],
                 availability_status=q.get("availability", "available"),
-            )
-            s.add(raw_obs)
-            s.flush()  # Get raw_obs.id
+            ))
             
-            obs = CleanedFare(
-                raw_id=raw_obs.id,
-                source_slug=q["source_slug"],
-                source_type=q.get("source_type", "airline"),
-                provenance=q.get("provenance", "LIVE_SCRAPE"),
-                origin=q["origin"],
-                destination=q["destination"],
-                route_key=route_key,
-                travel_date=q["travel_date"] if isinstance(q["travel_date"], date) else date.fromisoformat(q["travel_date"]),
-                observation_date=today,
-                observed_at=datetime.now(timezone.utc),
-                booking_window_days=q["booking_window"],
-                carrier_code=q.get("carrier_code"),
-                flight_number=q.get("flight_number"),
-                fare_class=q.get("fare_class"),
-                base_fare=q.get("base_fare"),
-                taxes=q.get("taxes"),
-                convenience_fee=q.get("convenience_fee"),
-                total_fare=q["total_fare"],
-                availability_status=q.get("availability", "available"),
-                is_outlier=q.get("is_outlier", False),
-                included_in_index=not q.get("is_outlier", False),
-            )
-            s.add(obs)
-            stored += 1
+        if raw_objects:
+            s.add_all(raw_objects)
+            s.flush()
+            
+            cleaned_objects = []
+            for i, q in enumerate(valid_quotes):
+                route_key = f"{q['origin']}-{q['destination']}"
+                cleaned_objects.append(CleanedFare(
+                    raw_id=raw_objects[i].id,
+                    source_slug=q["source_slug"],
+                    source_type=q.get("source_type") or SOURCES_BY_SLUG[q["source_slug"]].source_type.value,
+                    provenance=q.get("provenance", "LIVE_SCRAPE"),
+                    origin=q["origin"],
+                    destination=q["destination"],
+                    route_key=route_key,
+                    travel_date=q["travel_date"] if isinstance(q["travel_date"], date) else date.fromisoformat(q["travel_date"]),
+                    observation_date=today,
+                    observed_at=datetime.now(timezone.utc),
+                    booking_window_days=q["booking_window"],
+                    carrier_code=q.get("carrier_code"),
+                    flight_number=q.get("flight_number"),
+                    fare_class=q.get("fare_class"),
+                    base_fare=q.get("base_fare"),
+                    taxes=q.get("taxes"),
+                    convenience_fee=q.get("convenience_fee"),
+                    total_fare=q["total_fare"],
+                    availability_status=q.get("availability", "available"),
+                    is_outlier=q.get("is_outlier", False),
+                    included_in_index=not q.get("is_outlier", False),
+                ))
+            s.add_all(cleaned_objects)
+            stored += len(valid_quotes)
     logger.info(f"Stored {stored} fare observations")
     return stored
 
