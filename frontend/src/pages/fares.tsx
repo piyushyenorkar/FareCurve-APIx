@@ -37,7 +37,7 @@ const getLogoUrl = (code: string) => {
   const iata = iataMap[c] || c;
   if (["6E", "UK", "AI", "IX", "SG", "QP", "I5"].includes(iata)) return `https://images.kiwi.com/airlines/32/${iata}.png`;
   if (c === "MMT" || c === "MAKEMYTRIP") return "https://imgak.mmtcdn.com/pwa_v3/pwa_hotel_assets/header/logo@2x.png";
-  if (c === "GOIBIBO") return "https://jsak.goibibo.com/pwa_v3/pwa_hotel_assets/header/logo@2x.png"; // Mockish
+  if (c === "GOIBIBO") return "https://www.google.com/s2/favicons?domain=goibibo.com&sz=64";
   if (c === "IXIGO") return "https://www.ixigo.com/favicon.ico"; // Mockish
   if (c === "EASEMYTRIP") return "https://www.easemytrip.com/favicon.ico";
   if (c === "CLEARTRIP") return "https://www.cleartrip.com/favicon.ico";
@@ -230,11 +230,11 @@ export default function FaresPage() {
       </div>
 
       {currentData.length > 0 && !loading && (
-        <div style={{ display: "flex", overflowX: "auto", paddingBottom: "1rem", gap: "1rem" }}>
+        <div style={{ display: "flex", overflowX: "auto", paddingBottom: "1rem", gap: "1rem", width: "100%" }}>
           {currentData.map(c => {
             const logoUrl = getLogoUrl(c.carrier);
             return (
-              <div key={c.carrier} className="glass-card" style={{ flexShrink: 0, minWidth: "140px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+              <div key={c.carrier} className="glass-card" style={{ flex: 1, minWidth: "140px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                   {logoUrl && <img src={logoUrl} alt={c.carrier} style={{ height: "24px", maxWidth: "80px", objectFit: "contain" }} />}
                   <div style={{ fontSize: "1rem", fontWeight: 800, color: "#0f172a", marginTop: "4px" }}>{CARRIER_MAP[c.carrier] || c.carrier.charAt(0).toUpperCase() + c.carrier.slice(1)}</div>
