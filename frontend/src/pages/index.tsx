@@ -177,20 +177,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Controls Row */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-
-          {/* Structured Route Search */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Search size={14} style={{ color: "#64748b" }} />
-            <AirportSearch placeholder="Origin (DEL)" value={origin} onChange={setOrigin} />
-            <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
-            <AirportSearch placeholder="Dest (BOM)" value={dest} onChange={setDest} />
-            <button onClick={() => {
-              if (origin && dest) window.location.href = `/routes?route=${origin}-${dest}`;
-            }}
-              style={{ padding: "0.5rem 1rem", borderRadius: "999px", background: "#0f172a", color: "#fff", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", border: "none" }}>
-              Search
         {/* Right Controls - ONLY EXPORT HERE */}
         <div className="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto mt-2">
           {/* Export Dropdown */}

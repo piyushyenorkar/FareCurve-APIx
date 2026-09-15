@@ -77,7 +77,7 @@ def generate_reconstructed_fares(
         if not spec:
             continue
 
-        carriers = spec.carriers if spec.carriers else ("XX",)
+        carriers = spec.carriers if spec.carriers else ("6E", "UK", "AI", "IX", "SG", "QP", "I5")
 
         for route in ROUTE_BASKET:
             route_key = f"{route.origin}-{route.destination}"
