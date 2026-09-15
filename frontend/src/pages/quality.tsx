@@ -222,7 +222,7 @@ export default function QualityPage() {
                   <XAxis dataKey="route" tick={{fill:"#64748b",fontSize:11.5}} tickLine={{ stroke: '#cbd5e1' }} tickMargin={10} height={60} />
                   <YAxis tick={{fill:"#64748b",fontSize:11}} tickFormatter={v => `₹${v}`} />
                   <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v:any) => [`₹${v}`, '']}/>
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: "0.85rem", color: "#64748b" }} />
+                  <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: "0.85rem", color: "#64748b" }} />
                   <Line name="FareCurve Average (Live)" type="monotone" dataKey="fareCurve" stroke="#14b8a6" strokeWidth={2.5} dot={false} activeDot={{ r: 6 }} />
                   <Line name="DGCA TMU Reference (Anchor)" type="monotone" dataKey="dgca" stroke="#1e3a8a" strokeWidth={2.5} strokeDasharray="5 5" dot={false} />
                 </LineChart>

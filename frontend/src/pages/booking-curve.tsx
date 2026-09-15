@@ -99,7 +99,7 @@ export default function BookingCurvePage() {
         elasticity: dayDiff > 0 ? Math.round((pctChange / dayDiff) * 100) / 100 : 0,
         priceJump: Math.round(c.avg_fare - prev.avg_fare),
       };
-    });
+    }).reverse();
   }, [curve]);
 
   // Multi-airline comparison data
@@ -206,12 +206,12 @@ export default function BookingCurvePage() {
           <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)" }}>No data available for this route yet. Run the pipeline first.</div>
         ) : (
           <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={curve} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+            <LineChart data={curve} margin={{ top: 20, right: 30, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-              <XAxis dataKey="window" tick={{ fill: "#64748b", fontSize: 12 }} />
-              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => "₹" + v.toLocaleString()} />
-              <Tooltip cursor={{ stroke: "#e2e8f0", strokeWidth: 2, strokeDasharray: "4 4" }} contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", padding: "12px" }} formatter={(v: any, n: any) => ["₹" + Number(v).toLocaleString(), n]} />
-              <Line type="monotone" dataKey="avg_fare" name="Avg Fare" stroke="#3b82f6" strokeWidth={4} dot={{ fill: "#3b82f6", stroke: "#ffffff", strokeWidth: 2, r: 6 }} activeDot={{ r: 8, fill: "#0f172a", stroke: "#ffffff", strokeWidth: 2 }} />
+              <XAxis dataKey="window" tickLine={true} tickMargin={10} height={60} tick={{ fill: "#64748b", fontSize: 11.5 }} />
+              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} domain={["auto", "auto"]} tickFormatter={v => "₹" + v.toLocaleString()} />
+              <Tooltip cursor={{ stroke: "#e2e8f0", strokeWidth: 2, strokeDasharray: "4 4" }} contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v: any, n: any) => ["₹" + Number(v).toLocaleString(), n]} />
+              <Line type="monotone" dataKey="avg_fare" name="Avg Fare" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} />
             </LineChart>
           </ResponsiveContainer>
         )}
@@ -243,7 +243,7 @@ export default function BookingCurvePage() {
             Price change velocity — how aggressively fares rise as departure nears
           </p>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={elasticityData}>
+            <AreaChart data={elasticityData} margin={{ top: 20, right: 30, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="elasticityGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
@@ -251,14 +251,14 @@ export default function BookingCurvePage() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-              <XAxis dataKey="window" tick={{ fill: "#64748b", fontSize: 12 }} />
-              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => v + "%"} label={{ value: "% Change", angle: -90, position: "insideLeft", style: { fill: "#94a3b8", fontSize: 11 } }} />
-              <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", padding: "12px" }}
+              <XAxis dataKey="window" tickLine={true} tickMargin={10} height={60} tick={{ fill: "#64748b", fontSize: 11.5 }} />
+              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} domain={["auto", "auto"]} tickFormatter={v => v + "%"} label={{ value: "% Change", angle: -90, position: "insideLeft", style: { fill: "#94a3b8", fontSize: 11 } }} />
+              <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }}
                 formatter={(v: any, name: any) => {
                   if (name === "pctChange") return [`${v}%`, "% Price Change"];
                   return [v, name];
                 }} />
-              <Area type="monotone" dataKey="pctChange" stroke="#f43f5e" fill="url(#elasticityGrad)" strokeWidth={2.5} name="pctChange" dot={{ r: 5, fill: "#f43f5e" }} />
+              <Area type="monotone" dataKey="pctChange" stroke="#f43f5e" fill="url(#elasticityGrad)" strokeWidth={2.5} name="pctChange" dot={{ r: 3, fill: "#ffffff", stroke: "#f43f5e", strokeWidth: 2 }} activeDot={{ r: 5 }} />
             </AreaChart>
           </ResponsiveContainer>
           {/* Elasticity insight cards */}
@@ -291,18 +291,18 @@ export default function BookingCurvePage() {
             {route} — fare curves across carriers
           </p>
           <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={comparisonData}>
+            <LineChart data={comparisonData} margin={{ top: 20, right: 30, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-              <XAxis dataKey="window" tick={{ fill: "#64748b", fontSize: 12 }} />
-              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => "₹" + v.toLocaleString()} />
+              <XAxis dataKey="window" tickLine={true} tickMargin={10} height={60} tick={{ fill: "#64748b", fontSize: 11.5 }} />
+              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} domain={["auto", "auto"]} tickFormatter={v => "₹" + v.toLocaleString()} />
               <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v: any) => ["₹" + Number(v).toLocaleString()]} />
-              <Legend />
-              <Line type="monotone" dataKey="6E" name="IndiGo" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 4 }} connectNulls />
-              <Line type="monotone" dataKey="AI" name="Air India" stroke="#ef4444" strokeWidth={2.5} dot={{ r: 4 }} connectNulls />
-              <Line type="monotone" dataKey="SG" name="SpiceJet" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 4 }} connectNulls />
-              <Line type="monotone" dataKey="QP" name="Akasa" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4 }} connectNulls />
-                <Line type="monotone" dataKey="IX" name="AI Express" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 4 }} connectNulls />
-                <Line type="monotone" dataKey="UK" name="Vistara" stroke="#9d174d" strokeWidth={2.5} dot={{ r: 4 }} connectNulls />
+              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: "0.85rem", color: "#64748b" }} />
+              <Line type="monotone" dataKey="6E" name="IndiGo" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="AI" name="Air India" stroke="#f43f5e" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="SG" name="SpiceJet" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="QP" name="Akasa" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="IX" name="AI Express" stroke="#06b6d4" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="UK" name="Vistara" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
             </LineChart>
           </ResponsiveContainer>
         </div>
