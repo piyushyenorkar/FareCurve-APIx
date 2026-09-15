@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, Compass, Bot, LineChart, TrendingUp, AlertTriangle, ShieldCheck, Ticket, Fuel, ListChecks, MapPin, Terminal } from "lucide-react";
+import { Home, Compass, Plane, Bot, LineChart, TrendingUp, AlertTriangle, ShieldCheck, Ticket, Fuel, ListChecks, MapPin, Terminal } from "lucide-react";
 import { useRouter } from "next/router";
 
 export default function Sidebar() {
@@ -33,10 +33,10 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex gap-2 relative flex-1">
         {/* Continuous background rail for icons */}
-        <div className="absolute -left-1 top-0 bottom-0 w-12 bg-white rounded-full z-0 shadow-md"></div>
+        <div className="absolute left-1 top-0 bottom-0 w-12 bg-white rounded-full z-0 shadow-md"></div>
 
         {/* Icons Column */}
-        <div className="flex flex-col w-10 z-10 relative">
+        <div className="flex flex-col w-10 z-10 relative ml-2">
           {links.map((link) => {
             const isActive = router.pathname === link.href;
             return (
@@ -68,8 +68,6 @@ export default function Sidebar() {
           })}
         </div>
       </nav>
-
-      
-    </aside>
+</aside>
   );
 }
