@@ -268,7 +268,7 @@ export default function Home() {
         {/* Structured Route Search */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <AirportSearch placeholder="Origin (DEL)" value={origin} onChange={setOrigin} />
-          <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
+          <span style={{ color: "#64748b", fontSize: "0.8rem", fontFamily: "sans-serif" }}>{"\u2708\uFE0E"}</span>
           <AirportSearch placeholder="Dest (BOM)" value={dest} onChange={setDest} />
           <button onClick={() => {
               if (origin && dest) window.location.href = `/routes?route=${origin}-${dest}`;
@@ -348,7 +348,7 @@ export default function Home() {
             <InfoTooltip text="High-frequency data collection capturing massive amounts of real-time prices across various booking windows and OTAs/Airlines." />
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-4xl font-bold tracking-tight text-gray-900">48,250</span>
+            <span className="text-4xl font-bold tracking-tight text-gray-900">{latest ? latest.observations.toLocaleString() : '...'}</span>
             <div className="text-sm text-gray-500">Cleaned & de-duplicated</div>
           </div>
         </div>
