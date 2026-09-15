@@ -166,8 +166,8 @@ export default function Home() {
     <div className="mt-2 font-sans relative">
 
       {/* Hero Section */}
-      <div className="mb-10 pt-2">
-        <div className="text-left mb-8">
+      <div className="mb-10 pt-2 flex flex-col xl:flex-row justify-between items-start gap-4">
+        <div className="text-left">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
             Real-time airfare index
           </h1>
@@ -176,104 +176,109 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Controls Row */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-
-          {/* Structured Route Search */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Search size={14} style={{ color: "#64748b" }} />
-            <AirportSearch placeholder="Origin (DEL)" value={origin} onChange={setOrigin} />
-            <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
-            <AirportSearch placeholder="Dest (BOM)" value={dest} onChange={setDest} />
-            <button onClick={() => {
-                if (origin && dest) window.location.href = `/routes?route=${origin}-${dest}`;
-              }} 
-              style={{ padding: "0.5rem 1rem", borderRadius: "999px", background: "#0f172a", color: "#fff", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", border: "none" }}>
-              Search
+        {/* Right Controls - ONLY EXPORT HERE */}
+        <div className="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto mt-2">
+          {/* Export Dropdown */}
+          <div className="relative w-full md:w-auto">
+            <button
+              onClick={() => setIsExportOpen(!isExportOpen)}
+              className="w-full md:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full text-sm font-bold shadow-md hover:bg-blue-700 transition-all"
+            >
+              <Download size={18} />
+              Export Data
+              <ChevronDown size={18} className={`transition-transform duration-300 ${isExportOpen ? 'rotate-180' : ''}`} />
             </button>
+
+            {isExportOpen && (
+              <div className="absolute right-0 mt-3 w-[340px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden transform origin-top-right transition-all">
+                <div className="flex flex-col p-2 gap-1">
+                  <button onClick={handleExportCSV} className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
+                    <div className="text-blue-600 bg-blue-50 p-2 rounded-lg">
+                      <Database size={18} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900 mb-0.5">Time-Series & Routes (CSV)</span>
+                      <span className="text-[13px] text-gray-500 leading-snug">Daily/Weekly Index values & Route-wise breakdown for CPI integration.</span>
+                    </div>
+                  </button>
+
+                  <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
+                    <div className="text-blue-600 bg-blue-50 p-2 rounded-lg">
+                      <Calendar size={18} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900 mb-0.5">Booking Window Data (Excel)</span>
+                      <span className="text-[13px] text-gray-500 leading-snug">T+1 to T+45 elasticity data & advanced purchase pricing trends.</span>
+                    </div>
+                  </button>
+
+                  <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
+                    <div className="text-blue-600 bg-blue-50 p-2 rounded-lg">
+                      <FileText size={18} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900 mb-0.5">DGCA Validation Report (PDF)</span>
+                      <span className="text-[13px] text-gray-500 leading-snug">Back-test summary & Confidence percentage for policy briefings.</span>
+                    </div>
+                  </button>
+
+                  <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
+                    <div className="text-blue-600 bg-blue-50 p-2 rounded-lg flex justify-center items-center h-[34px] w-[34px]">
+                      <span className="text-[11px] font-bold tracking-wider">API</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900 mb-0.5">API / JSON Integration</span>
+                      <span className="text-[13px] text-gray-500 leading-snug">API Endpoints & JSON access for programmatic NSO/RBI pulling.</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
+      </div>
 
-          {/* Right Controls */}
-          <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                                    {/* Controls Row */}
+      <div className="flex flex-col xl:flex-row justify-between items-center gap-4 mb-8 w-full">
+        {/* Structured Route Search */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }} className="w-full xl:w-auto">
+          <AirportSearch placeholder="Origin (DEL)" value={origin} onChange={setOrigin} />
+          <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
+          <AirportSearch placeholder="Dest (BOM)" value={dest} onChange={setDest} />
+          <button onClick={() => {
+              if (origin && dest) window.location.href = `/routes?route=${origin}-${dest}`;
+            }} 
+            style={{ padding: "0.5rem 1rem", borderRadius: "999px", background: "#0f172a", color: "#fff", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", border: "none" }}>
+            Search
+          </button>
+        </div>
 
-            {/* Header Badges */}
-            <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-              <div
-                onClick={() => setIsLogsOpen(true)}
-                className="group flex items-center gap-3 bg-white border border-gray-200 pl-4 pr-3 py-2 rounded-full text-sm font-medium text-gray-600 justify-center shadow-sm cursor-pointer hover:bg-gray-50 hover:border-blue-200 transition-all">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                  <span>Live • updated 3 min ago</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-gray-100 group-hover:bg-blue-50 group-hover:text-blue-700 px-2 py-1 rounded-full text-xs font-bold text-gray-500 transition-colors">
-                  View logs <ArrowRight size={14} />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-[12px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-2.5 rounded-full shadow-sm whitespace-nowrap">
-                <ShieldCheck size={14} />
-                88% Confidence
-                <span className="text-emerald-300">•</span>
-                <span className="font-semibold text-emerald-600">Last validated: {latest ? formatDate(latest.date || latest.computation_date) : "Today"}</span>
-              </div>
+        {/* Badges in the same row as Search */}
+        <div className="flex flex-row items-center justify-start xl:justify-end gap-3 w-full xl:w-auto overflow-x-auto pb-1 xl:pb-0 thin-scrollbar">
+          {/* Live Badge */}
+          <div
+            onClick={() => setIsLogsOpen(true)}
+            className="group flex items-center gap-2 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-600 justify-center cursor-pointer hover:bg-gray-50 hover:border-blue-200 transition-all flex-shrink-0"
+            style={{ height: "38px", padding: "0 0.5rem 0 1rem" }}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              <span>Live • 3 min ago</span>
             </div>
-
-            {/* Export Dropdown */}
-            <div className="relative w-full md:w-auto">
-              <button
-                onClick={() => setIsExportOpen(!isExportOpen)}
-                className="w-full md:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-full text-sm font-bold shadow-md hover:bg-blue-700 transition-all"
-              >
-                <Download size={18} />
-                Export Data
-                <ChevronDown size={18} className={`transition-transform duration-300 ${isExportOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isExportOpen && (
-                <div className="absolute right-0 mt-3 w-[340px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden transform origin-top-right transition-all">
-                  <div className="flex flex-col p-2 gap-1">
-                    <button onClick={handleExportCSV} className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
-                      <div className="text-blue-600 bg-blue-50 p-2 rounded-lg">
-                        <Database size={18} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-900 mb-0.5">Time-Series & Routes (CSV)</span>
-                        <span className="text-[13px] text-gray-500 leading-snug">Daily/Weekly Index values & Route-wise breakdown for CPI integration.</span>
-                      </div>
-                    </button>
-
-                    <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
-                      <div className="text-blue-600 bg-blue-50 p-2 rounded-lg">
-                        <Calendar size={18} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-900 mb-0.5">Booking Window Data (Excel)</span>
-                        <span className="text-[13px] text-gray-500 leading-snug">T+1 to T+45 elasticity data & advanced purchase pricing trends.</span>
-                      </div>
-                    </button>
-
-                    <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
-                      <div className="text-blue-600 bg-blue-50 p-2 rounded-lg">
-                        <FileText size={18} />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-900 mb-0.5">DGCA Validation Report (PDF)</span>
-                        <span className="text-[13px] text-gray-500 leading-snug">Back-test summary & Confidence percentage for policy briefings.</span>
-                      </div>
-                    </button>
-
-                    <button className="text-left p-3 rounded-xl hover:bg-gray-50 flex gap-4 transition-colors group items-start">
-                      <div className="text-blue-600 bg-blue-50 p-2 rounded-lg flex justify-center items-center h-[34px] w-[34px]">
-                        <span className="text-[11px] font-bold tracking-wider">API</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-900 mb-0.5">API / JSON Integration</span>
-                        <span className="text-[13px] text-gray-500 leading-snug">API Endpoints & JSON access for programmatic NSO/RBI pulling.</span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              )}
+            <div className="flex items-center gap-1 bg-gray-100 group-hover:bg-blue-50 group-hover:text-blue-700 px-2.5 py-1 rounded-full text-[11px] font-bold text-gray-500 transition-colors ml-1">
+              Logs <ArrowRight size={12} />
             </div>
+          </div>
+          
+          {/* Confidence Badge */}
+          <div 
+            className="flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full flex-shrink-0 whitespace-nowrap"
+            style={{ height: "38px", padding: "0 1rem" }}
+          >
+            <ShieldCheck size={14} />
+            88% Confidence
+            <span className="text-emerald-300 mx-1">•</span>
+            <span className="font-semibold text-emerald-600">Last validated: {latest ? formatDate(latest.date || latest.computation_date) : "14 Sept"}</span>
           </div>
         </div>
       </div>
@@ -360,10 +365,6 @@ export default function Home() {
         </div>
         <div className="text-sm text-gray-400 mt-6 flex justify-between items-center">
           <span>{latest ? "Live data integrated" : "Awaiting live pipeline data..."}</span>
-        </div>
-        {/* Floating scroll indicator */}
-        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 shadow-sm hover:bg-gray-50 cursor-pointer transition-colors">
-          <ArrowDown size={18} />
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Search } from "lucide-react";
 
 const AIRPORTS = [
   { code: "DEL", city: "Delhi" }, { code: "BOM", city: "Mumbai" }, { code: "BLR", city: "Bengaluru" },
@@ -36,7 +37,8 @@ export function AirportSearch({ value, onChange, placeholder, allowedCodes }: { 
   });
 
   return (
-    <div ref={wrapperRef} style={{ position: "relative" }}>
+    <div ref={wrapperRef} style={{ position: "relative", display: "flex", alignItems: "center" }}>
+      <Search size={14} style={{ color: "#94a3b8", position: "absolute", left: "0.75rem", pointerEvents: "none" }} />
       <input 
         placeholder={placeholder}
         value={search}
@@ -45,7 +47,7 @@ export function AirportSearch({ value, onChange, placeholder, allowedCodes }: { 
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
-        style={{ padding: "0.5rem 1rem", borderRadius: "999px", border: "1px solid #e2e8f0", fontSize: "0.8rem", width: "130px", outline: "none", color: "#0f172a" }}
+        style={{ padding: "0.5rem 1rem 0.5rem 2rem", borderRadius: "999px", border: "1px solid #e2e8f0", fontSize: "0.8rem", width: "130px", outline: "none", color: "#0f172a" }}
       />
       {open && filtered.length > 0 && (
         <div className="thin-scrollbar" style={{
@@ -63,7 +65,7 @@ export function AirportSearch({ value, onChange, placeholder, allowedCodes }: { 
               }}
               style={{
                 display: "flex", justifyContent: "space-between", alignItems: "center",
-                padding: "0.5rem 1rem", fontSize: "0.8rem", cursor: "pointer", borderBottom: "1px solid #f8fafc"
+                padding: "0.5rem 1rem 0.5rem 2rem", fontSize: "0.8rem", cursor: "pointer", borderBottom: "1px solid #f8fafc"
               }}
               onMouseEnter={(e) => e.currentTarget.style.background = "#eff6ff"}
               onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
