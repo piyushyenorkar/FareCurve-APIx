@@ -23,8 +23,8 @@ BASE_FARES: dict[str, float] = {
     "DEL-LKO": 3500, "DEL-SXR": 6200, "DEL-JAI": 3000, "DEL-MAA": 5400,
 }
 
-CARRIERS = ["6E", "AI", "SG", "QP", "IX", "I5"]
-CARRIER_MULTIPLIERS = {"6E": 0.95, "AI": 1.15, "SG": 0.92, "QP": 0.98, "IX": 1.0, "I5": 0.90}
+CARRIERS = ["6E", "UK", "AI", "SG", "QP", "IX", "I5"]
+CARRIER_MULTIPLIERS = {"6E": 0.95, "UK": 1.10, "AI": 1.15, "SG": 0.92, "QP": 0.98, "IX": 1.0, "I5": 0.90}
 WINDOW_MULTIPLIERS = {1: 1.65, 7: 1.35, 15: 1.10, 30: 0.92, 45: 0.82}
 
 GATED_SOURCES = [s.slug for s in SOURCES if s.documented_verdict.value == "DENY"]

@@ -32,7 +32,7 @@ const CARRIER_MAP: Record<string, string> = {
 const getLogoUrl = (code: string) => {
   const c = code.toUpperCase();
   const iataMap: Record<string, string> = {
-    "INDIGO": "6E", "AIRINDIA": "AI", "AIRINDIAEXPRESS": "IX", "SPICEJET": "SG", "AKASA": "QP", "AIXCONNECT": "I5"
+    "INDIGO": "6E", "AIRINDIA": "AI", "AIRINDIAEXPRESS": "IX", "SPICEJET": "SG", "AKASA": "QP", "AIXCONNECT": "I5", "VISTARA": "UK"
   };
   const iata = iataMap[c] || c;
   if (["6E", "UK", "AI", "IX", "SG", "QP", "I5"].includes(iata)) return `https://images.kiwi.com/airlines/32/${iata}.png`;
