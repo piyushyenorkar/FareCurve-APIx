@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { api } from "../lib/api";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart, Line, Legend, ComposedChart, Area } from "recharts";
 import { InfoTooltip } from "../components/InfoTooltip";
+import { ShieldCheck, ShieldAlert, AlertTriangle, AlertCircle, CheckCircle2, SearchX } from "lucide-react";
 import { ChartAIButton } from "../components/ChartAIButton";
 import { formatDate } from "../lib/formatDate";
 
@@ -194,17 +195,49 @@ export default function QualityPage() {
               </div>
             </div>
           )}
+          {current && (
+            <div className="glass-card mb-8">
+              <div style={{ marginBottom: "1.5rem" }}>
+                <h2 style={{fontSize:"1.1rem",fontWeight:700}}>Data-Cleaning Pipeline Breakdown</h2>
+                <p style={{color:"var(--text-muted)",fontSize:"0.875rem"}}>Visibility into outliers removed, missing values handled, and cancellations accounted for.</p>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"1rem"}}>
+                <div style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.1)", padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
+                  <div style={{ display:"flex", justifyContent:"center", color:"#ef4444", marginBottom:"0.5rem" }}><AlertTriangle size={24} /></div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#ef4444" }}>{current.outlier_points || 0}</div>
+                  <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", marginTop:"0.25rem" }}>Outliers Removed</div>
+                </div>
+                <div style={{ background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.1)", padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
+                  <div style={{ display:"flex", justifyContent:"center", color:"#f59e0b", marginBottom:"0.5rem" }}><SearchX size={24} /></div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#f59e0b" }}>{current.sold_out_points || 0}</div>
+                  <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", marginTop:"0.25rem" }}>Sold-Out / Cancelled</div>
+                </div>
+                <div style={{ background: "rgba(139,92,246,0.05)", border: "1px solid rgba(139,92,246,0.1)", padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
+                  <div style={{ display:"flex", justifyContent:"center", color:"#8b5cf6", marginBottom:"0.5rem" }}><CheckCircle2 size={24} /></div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#8b5cf6" }}>{current.reconstructed || 0}</div>
+                  <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", marginTop:"0.25rem" }}>Missing Values Handled</div>
+                </div>
+                <div style={{ background: "rgba(100,116,139,0.05)", border: "1px solid rgba(100,116,139,0.1)", padding: "1rem", borderRadius: "8px", textAlign: "center" }}>
+                  <div style={{ display:"flex", justifyContent:"center", color:"#64748b", marginBottom:"0.5rem" }}><ShieldAlert size={24} /></div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#64748b" }}>{current.failed_points || 0}</div>
+                  <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", marginTop:"0.25rem" }}>Failed / Blocked Points</div>
+                </div>
+              </div>
+            </div>
+          )}
           {history.length > 0 && (
             <div className="glass-card mb-8">
-              <h2 style={{fontSize:"1.1rem",fontWeight:700,marginBottom:"1rem"}}>Coverage Trend (30 Days)</h2>
+              <h2 style={{fontSize:"1.1rem",fontWeight:700,marginBottom:"1rem"}}>Confidence vs Coverage Trend (30 Days)</h2>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={history}>
+                <LineChart data={history} margin={{ right: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
                   <XAxis dataKey="date" tickLine={true} tickMargin={10} tick={<CustomTick />} height={60} interval={1} />
-                  <YAxis tick={{fill:"#64748b",fontSize:11}} tickFormatter={v=>v+"%"}/>
-                  <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v:any)=>[v+"%","Coverage"]}/>
-                  <Bar dataKey="coverage_pct" fill="#3b82f6" radius={[4,4,0,0]}/>
-                </BarChart>
+                  <YAxis tick={{fill:"#64748b",fontSize:11}} tickFormatter={v=>v+"%"} domain={[0, 100]} />
+                  <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} />
+                  <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: "0.85rem", color: "#64748b" }} />
+                  <Line name="Coverage % (Expected)" type="monotone" dataKey="coverage_pct" stroke="#3b82f6" strokeWidth={2.5} strokeDasharray="5 5" dot={false} />
+                  <Line name="Confidence % (Live)" type="monotone" dataKey="confidence_pct" stroke="#10b981" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           )}

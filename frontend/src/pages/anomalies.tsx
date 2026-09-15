@@ -16,6 +16,12 @@ const CLASS_LABELS: Record<string,string> = {
   "SEASONAL_SPIKE": "Seasonal Spike",
 };
 
+const TOOLTIPS: Record<string,string> = {
+  "GENUINE_SURGE": "Spike corroborated by multiple independent sources.",
+  "DATA_ERROR": "Single source sharply disagrees with all peers.",
+  "SEASONAL_SPIKE": "Known festival or holiday demand surge.",
+};
+
 export default function AnomaliesPage() {
   const [anomalies, setAnomalies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +53,10 @@ export default function AnomaliesPage() {
         {Object.entries(CLASS_LABELS).map(([key,label])=>(
           <div key={key} className="glass-card" style={{textAlign:"center"}}>
             <div style={{fontSize:"2.5rem",fontWeight:800,color:CLASS_COLORS[key]}}>{counts[key] || 0}</div>
-            <div style={{fontSize:"0.8rem",color:"var(--text-muted)"}}>{label}</div>
+            <div style={{fontSize:"0.8rem",color:"var(--text-muted)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.3rem"}}>
+              {label}
+              <InfoTooltip text={TOOLTIPS[key]} />
+            </div>
           </div>
         ))}
       </div>
@@ -81,7 +90,29 @@ export default function AnomaliesPage() {
                   <td>₹{a.mean_fare?.toLocaleString()}</td>
                   <td style={{color:CLASS_COLORS[a.classification]||"#64748b",fontWeight:700}}>{a.z_score?.toFixed(2)}</td>
                   <td><span style={{display:"inline-block",padding:"2px 10px",borderRadius:999,fontSize:"0.75rem",fontWeight:700,background:`${CLASS_COLORS[a.classification]||"#64748b"}15`,color:CLASS_COLORS[a.classification]||"#64748b"}}>{CLASS_LABELS[a.classification]||a.classification}</span></td>
-                  <td style={{fontSize:"0.8rem",color:"var(--text-secondary)"}}>{a.source || a.carrier}</td>
+                  <td style={{fontSize:"0.8rem",color:"var(--text-secondary)"}}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      {(() => {
+                        const s = (a.source || a.carrier)?.toLowerCase() || "";
+                        let url = "";
+                        if (s.includes("yatra")) url = "https://www.google.com/s2/favicons?domain=yatra.com&sz=64";
+                        else if (s.includes("makemytrip")) url = "https://www.google.com/s2/favicons?domain=makemytrip.com&sz=64";
+                        else if (s.includes("easemytrip")) url = "https://www.google.com/s2/favicons?domain=easemytrip.com&sz=64";
+                        else if (s.includes("cleartrip")) url = "https://www.google.com/s2/favicons?domain=cleartrip.com&sz=64";
+                        else if (s.includes("ixigo")) url = "https://www.google.com/s2/favicons?domain=ixigo.com&sz=64";
+                        else if (s.includes("goibibo")) url = "https://www.google.com/s2/favicons?domain=goibibo.com&sz=64";
+                        else if (s.includes("indigo") || s === "6e") url = "https://images.kiwi.com/airlines/32/6E.png";
+                        else if ((s.includes("airindia") && !s.includes("express")) || s === "ai") url = "https://images.kiwi.com/airlines/32/AI.png";
+                        else if (s.includes("spicejet") || s === "sg") url = "https://images.kiwi.com/airlines/32/SG.png";
+                        else if (s.includes("akasa") || s === "qp") url = "https://images.kiwi.com/airlines/32/QP.png";
+                        else if (s.includes("airindiaexpress") || s.includes("express") || s === "ix") url = "https://images.kiwi.com/airlines/32/IX.png";
+                        else if (s.includes("vistara") || s === "uk") url = "https://images.kiwi.com/airlines/32/UK.png";
+                        
+                        return url ? <img src={url} alt={s} style={{ width: 16, height: 16, objectFit: "contain", borderRadius: 4 }} /> : null;
+                      })()}
+                      <span style={{ textTransform: "capitalize", fontWeight: 600, color: "#1e293b" }}>{a.source || a.carrier}</span>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -44,6 +44,59 @@ const AIRPORTS = [
   { code: "ATQ", city: "Amritsar" }, { code: "IXB", city: "Bagdogra" }
 ];
 
+
+const CustomComparisonTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    
+
+  return (
+      <div style={{ backgroundColor: "#ffffff", padding: "12px", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)", minWidth: "160px" }}>
+        <p style={{ margin: "0 0 8px 0", fontWeight: 700, fontSize: "13px", color: "#64748b" }}>{label}</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {payload.map((entry: any, index: number) => {
+            const opt = AIRLINE_OPTIONS.find(o => o.value === entry.dataKey);
+            return (
+              <div key={index} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "13px", fontWeight: 600, color: "#334155" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  {opt?.logo && <img src={opt.logo} alt={entry.name} style={{ width: 16, height: 16, objectFit: "contain" }} />}
+                  <span style={{ color: "#1e293b" }}>{entry.name}</span>
+                </div>
+                <span>₹{Number(entry.value).toLocaleString()}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomOtaTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{ backgroundColor: "#ffffff", padding: "12px", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)", minWidth: "160px" }}>
+        <p style={{ margin: "0 0 8px 0", fontWeight: 700, fontSize: "13px", color: "#64748b" }}>{label}</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {payload.map((entry: any, index: number) => {
+            const opt = OTA_OPTIONS.find(o => o.value === entry.dataKey);
+            return (
+              <div key={index} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "13px", fontWeight: 600, color: "#334155" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  {opt?.logo && <img src={opt.logo} alt={entry.name} style={{ width: 16, height: 16, objectFit: "contain", borderRadius: 4 }} />}
+                  <span style={{ color: "#1e293b", textTransform: "capitalize" }}>{opt?.label || entry.name}</span>
+                </div>
+                <span>₹{Number(entry.value).toLocaleString()}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function BookingCurvePage() {
   const [route, setRoute] = useState("DEL-BOM");
   const [airline, setAirline] = useState("ALL");
@@ -107,7 +160,7 @@ export default function BookingCurvePage() {
   useEffect(() => {
     if (airline !== "ALL") return;
     const [origin, dest] = route.split("-");
-    const carriers = ["6E", "AI", "SG", "QP"];
+    const carriers = ["6E", "AI", "SG", "QP", "IX", "UK"];
     Promise.all(
       carriers.map(c =>
         fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/index/booking-curve/${origin}/${dest}?carrier=${c}`)
@@ -127,6 +180,33 @@ export default function BookingCurvePage() {
         return row;
       });
       setComparisonData(comp);
+    });
+  }, [route, airline, ota]);
+
+  // OTA comparison data
+  const [otaComparisonData, setOtaComparisonData] = useState<any[]>([]);
+  useEffect(() => {
+    if (ota !== "ALL") return;
+    const [origin, dest] = route.split("-");
+    const sources = ["yatra", "makemytrip", "easemytrip", "cleartrip", "ixigo", "goibibo"];
+    Promise.all(
+      sources.map(s =>
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/index/booking-curve/${origin}/${dest}?source=${s}`)
+          .then(r => r.json())
+          .then(d => ({ source: s, curve: d?.curve || [] }))
+          .catch(() => ({ source: s, curve: [] }))
+      )
+    ).then(results => {
+      const windows = ["T+1", "T+7", "T+15", "T+30", "T+45"];
+      const comp = windows.map(w => {
+        const row: any = { window: w };
+        results.forEach(r => {
+          const pt = r.curve.find((c: any) => c.window === w);
+          row[r.source] = pt?.avg_fare || null;
+        });
+        return row;
+      });
+      setOtaComparisonData(comp);
     });
   }, [route, airline, ota]);
 
@@ -215,20 +295,20 @@ export default function BookingCurvePage() {
             </LineChart>
           </ResponsiveContainer>
         )}
-      </div>
 
-      {/* Summary Cards */}
-      {curve.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${curve.length},1fr)`, gap: "1rem", marginBottom: "1.5rem" }}>
-          {curve.map((c, i) => (
-            <div key={c.window} className="glass-card" style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: "0.5rem" }}>{c.label || c.window}</div>
-              <div style={{ fontSize: "1.5rem", fontWeight: 900, color: COLORS[i % COLORS.length] }}>₹{Number(c.avg_fare).toLocaleString()}</div>
-              <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>{c.window} · {c.observations || 0} obs</div>
-            </div>
-          ))}
-        </div>
-      )}
+        {/* Summary Cards */}
+        {curve.length > 0 && (
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${curve.length},1fr)`, gap: "1rem", marginTop: "1rem" }}>
+            {curve.map((c, i) => (
+              <div key={c.window} style={{ background: "#fafafa", borderRadius: "12px", padding: "1rem", textAlign: "center", border: "1px solid #f1f5f9" }}>
+                <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: "#94a3b8", marginBottom: "0.5rem" }}>{c.label || c.window}</div>
+                <div style={{ fontSize: "1.5rem", fontWeight: 900, color: COLORS[i % COLORS.length] }}>₹{Number(c.avg_fare).toLocaleString()}</div>
+                <div style={{ fontSize: "0.7rem", color: "#64748b", marginTop: "0.25rem" }}>{c.window} · {c.observations || 0} obs</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Lead-Time Elasticity Curve */}
       {elasticityData.length > 1 && (
@@ -295,7 +375,7 @@ export default function BookingCurvePage() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
               <XAxis dataKey="window" tickLine={true} tickMargin={10} height={60} tick={{ fill: "#64748b", fontSize: 11.5 }} />
               <YAxis tick={{ fill: "#64748b", fontSize: 11 }} domain={["auto", "auto"]} tickFormatter={v => "₹" + v.toLocaleString()} />
-              <Tooltip contentStyle={{ backgroundColor: "#ffffff", borderRadius: "12px", border: "1px solid #e2e8f0" }} formatter={(v: any) => ["₹" + Number(v).toLocaleString()]} />
+              <Tooltip content={<CustomComparisonTooltip />} />
               <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: "0.85rem", color: "#64748b" }} />
               <Line type="monotone" dataKey="6E" name="IndiGo" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
               <Line type="monotone" dataKey="AI" name="Air India" stroke="#f43f5e" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
@@ -307,6 +387,37 @@ export default function BookingCurvePage() {
           </ResponsiveContainer>
         </div>
       )}
+
+      {/* OTA Comparison (only when "All Sources" selected) */}
+      {ota === "ALL" && otaComparisonData.length > 0 && otaComparisonData.some(d => d["yatra"] || d["makemytrip"] || d["easemytrip"] || d["cleartrip"] || d["ixigo"] || d["goibibo"]) && (
+        <div className="glass-card" style={{ marginTop: "1.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
+              OTA Pricing Comparison <InfoTooltip text="Compares how different OTAs (travel agencies) price the same route across booking windows." />
+            </h2>
+            <ChartAIButton contextQuery={`Compare the OTA pricing for the ${route} route across different sources.`} />
+          </div>
+          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+            {route} — fare curves across OTAs
+          </p>
+          <ResponsiveContainer width="100%" height={350}>
+            <LineChart data={otaComparisonData} margin={{ top: 20, right: 30, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+              <XAxis dataKey="window" tickLine={true} tickMargin={10} height={60} tick={{ fill: "#64748b", fontSize: 11.5 }} />
+              <YAxis tick={{ fill: "#64748b", fontSize: 11 }} domain={["auto", "auto"]} tickFormatter={v => "₹" + v.toLocaleString()} />
+              <Tooltip content={<CustomOtaTooltip />} />
+              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: "0.85rem", color: "#64748b" }} />
+              <Line type="monotone" dataKey="makemytrip" name="MakeMyTrip" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="yatra" name="Yatra" stroke="#f43f5e" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="goibibo" name="Goibibo" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="easemytrip" name="EaseMyTrip" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="ixigo" name="Ixigo" stroke="#06b6d4" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+              <Line type="monotone" dataKey="cleartrip" name="Cleartrip" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} connectNulls />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
     </div>
   );
 }
