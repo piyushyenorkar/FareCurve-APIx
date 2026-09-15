@@ -135,7 +135,7 @@ export default function AIPage() {
               disabled={loading}
             />
             <button 
-              onClick={handleSend}
+              onClick={() => handleSend()}
               disabled={loading || !input.trim()}
               style={{
                 width: "40px", height: "40px", borderRadius: "50%", border: "none", cursor: loading || !input.trim() ? "not-allowed" : "pointer",
