@@ -80,16 +80,18 @@ def fare_breakdown(route: str, days: int = Query(7, ge=1, le=90), window: str = 
         ).all()
 
         # OTA breakdown
-        ota_rows = s.execute(
-            select(
-                CleanedFare.source_slug,
-                func.avg(CleanedFare.base_fare).label("avg_base"),
-                func.avg(CleanedFare.taxes).label("avg_taxes"),
-                func.avg(CleanedFare.convenience_fee).label("avg_conv"),
-                func.avg(CleanedFare.total_fare).label("avg_total"),
-                func.count().label("n"),
-            ).where(where_clause).group_by(CleanedFare.source_slug)
-        ).all()
+        stmt = select(
+            CleanedFare.source_slug,
+            func.avg(CleanedFare.base_fare).label("avg_base"),
+            func.avg(CleanedFare.taxes).label("avg_taxes"),
+            func.avg(CleanedFare.convenience_fee).label("avg_conv"),
+            func.avg(CleanedFare.total_fare).label("avg_total"),
+            func.count().label("n"),
+        ).where(and_(where_clause, CleanedFare.source_type == 'ota')).group_by(CleanedFare.source_slug)
+        print("SQL QUERY:", str(stmt.compile(compile_kwargs={"literal_binds": True})))
+        ota_rows = s.execute(stmt).all()
+        print("OTA ROWS:", ota_rows)
+
 
     return {
         "route": route.upper(),
@@ -114,3 +116,4 @@ def fare_breakdown(route: str, days: int = Query(7, ge=1, le=90), window: str = 
             } for r in ota_rows
         ]
     }
+# touch for reload

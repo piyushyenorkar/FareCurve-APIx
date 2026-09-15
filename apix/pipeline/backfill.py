@@ -23,8 +23,8 @@ BASE_FARES: dict[str, float] = {
     "DEL-LKO": 3500, "DEL-SXR": 6200, "DEL-JAI": 3000, "DEL-MAA": 5400,
 }
 
-CARRIERS = ["6E", "UK", "AI", "SG", "QP", "IX", "I5"]
-CARRIER_MULTIPLIERS = {"6E": 0.95, "UK": 1.10, "AI": 1.15, "SG": 0.92, "QP": 0.98, "IX": 1.0, "I5": 0.90}
+CARRIERS = ["6E", "UK", "AI", "SG", "QP", "IX", ]
+CARRIER_MULTIPLIERS = {"6E": 0.95, "UK": 1.10, "AI": 1.15, "SG": 0.92, "QP": 0.98, "IX": 1.0, : 0.90}
 WINDOW_MULTIPLIERS = {1: 1.65, 7: 1.35, 15: 1.10, 30: 0.92, 45: 0.82}
 
 GATED_SOURCES = [s.slug for s in SOURCES if s.documented_verdict.value == "DENY"]
@@ -89,10 +89,11 @@ def backfill(days: int = 30, seed: int = 42) -> dict:
                         "total_fare": total,
                     })
 
-        # Store quotes
+        # Store quotes efficiently
         with session_scope() as s:
+            raw_objects = []
             for q in day_quotes:
-                raw_obs = RawFareSnapshot(
+                raw_objects.append(RawFareSnapshot(
                     source_slug=q["source_slug"],
                     source_type=q["source_type"],
                     provenance=q["provenance"],
@@ -109,12 +110,15 @@ def backfill(days: int = 30, seed: int = 42) -> dict:
                     convenience_fee=q["convenience_fee"],
                     total_fare=q["total_fare"],
                     availability_status="available"
-                )
-                s.add(raw_obs)
-                s.flush() # Get the ID for raw_obs
-                
-                obs = CleanedFare(
-                    raw_id=raw_obs.id,
+                ))
+            
+            s.add_all(raw_objects)
+            s.flush()
+            
+            cleaned_objects = []
+            for i, q in enumerate(day_quotes):
+                cleaned_objects.append(CleanedFare(
+                    raw_id=raw_objects[i].id,
                     source_slug=q["source_slug"],
                     source_type=q["source_type"],
                     provenance=q["provenance"],
@@ -133,8 +137,9 @@ def backfill(days: int = 30, seed: int = 42) -> dict:
                     availability_status="available",
                     is_outlier=False,
                     included_in_index=True,
-                )
-                s.add(obs)
+                ))
+                
+            s.add_all(cleaned_objects)
             total_stored += len(day_quotes)
 
         # Compute and store overall index
