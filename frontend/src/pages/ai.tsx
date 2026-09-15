@@ -1,30 +1,54 @@
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/router";
 import { api } from "../lib/api";
 import { Send, Bot, User, Loader2, Info } from "lucide-react";
 
 export default function AIPage() {
+  const router = useRouter();
   const [messages, setMessages] = useState<{role: string, content: string}[]>([
     { role: "assistant", content: "Hello! I am FareCurve AI, your specialized aviation pricing and data analyst. I'm trained to help the Government of India (DGCA, NSO, RBI) understand inflation metrics, dynamic pricing, and ATF impacts. How can I assist you with the Airfare Price Index today?" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [format, setFormat] = useState("Auto");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const initialized = useRef(false);
+
+  useEffect(() => {
+    if (router.isReady && router.query.q && !initialized.current) {
+      initialized.current = true;
+      const initialQuery = router.query.q as string;
+      handleSend(initialQuery);
+    }
+  }, [router.isReady, router.query.q]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
+  const handleSend = async (overrideInput?: string) => {
+    const messageContent = overrideInput || input.trim();
+    if (!messageContent || loading) return;
     
-    const userMsg = { role: "user", content: input.trim() };
-    const newMessages = [...messages, userMsg];
+    let fullPrompt = messageContent;
+    if (format !== "Auto") {
+      fullPrompt += `\n\n(Please format your response as: ${format})`;
+    }
+
+    const userMsg = { role: "user", content: fullPrompt };
+    // For display, we might want to just show the user's text, but backend needs the full prompt.
+    // Let's store display string vs actual prompt in a way, or just show the full prompt.
+    // Showing the full prompt is fine for now, or we can just send the format context.
+    const displayMsg = { role: "user", content: messageContent };
+    
+    const newMessages = [...messages, displayMsg];
     setMessages(newMessages);
-    setInput("");
+    if (!overrideInput) setInput("");
     setLoading(true);
 
     try {
-      const res = await api.chat(newMessages);
+      const apiMessages = [...messages, userMsg];
+      const res = await api.chat(apiMessages);
       if (res && res.content) {
         setMessages([...newMessages, { role: "assistant", content: res.content }]);
       } else {
@@ -123,6 +147,28 @@ export default function AIPage() {
             </button>
           </div>
           
+          <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", alignItems: "center" }}>
+            <span style={{ fontSize: "0.85rem", color: "#64748b", fontWeight: 500 }}>Format:</span>
+            {["Auto", "Bullet Points", "Summary"].map(fmt => (
+              <button
+                key={fmt}
+                onClick={() => setFormat(fmt)}
+                style={{
+                  padding: "4px 12px",
+                  borderRadius: "999px",
+                  fontSize: "0.85rem",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  border: format === fmt ? "none" : "1px solid #cbd5e1",
+                  background: format === fmt ? "linear-gradient(135deg, #3b82f6, #06b6d4)" : "#fff",
+                  color: format === fmt ? "#fff" : "#475569",
+                  transition: "all 0.2s"
+                }}
+              >
+                {fmt}
+              </button>
+            ))}
+          </div>
         </div>
 
       </div>

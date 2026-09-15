@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { Plane, Search } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { AirportSearch } from "../components/AirportSearch";
+import { ChartAIButton } from "../components/ChartAIButton";
 
 import { CustomDropdown } from "../components/CustomDropdown";
 const WINDOW_OPTIONS = [{value: "ALL", label: "All Booking Windows"}, {value: "T+1", label: "T+1 (Tomorrow)"}, {value: "T+3", label: "T+3 Days"}, {value: "T+7", label: "T+7 Days"}, {value: "T+15", label: "T+15 Days"}, {value: "T+30", label: "T+30 Days"}];
@@ -165,8 +166,10 @@ export default function FaresPage() {
 
       <div className="glass-card" style={{ marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-          <h2 style={{ fontSize: "1.1rem", fontWeight: 700 }}>{route} Fare Breakdown</h2>
-          <div style={{ display: "flex", gap: "0.25rem", background: "#f1f5f9", padding: "4px", borderRadius: "8px" }}>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>{route} Fare Breakdown</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <ChartAIButton contextQuery={`Analyze the fare breakdown for the ${route} route.`} />
+            <div style={{ display: "flex", gap: "0.25rem", background: "#f1f5f9", padding: "4px", borderRadius: "8px" }}>
             <button onClick={() => setViewMode("airline")} style={{
               padding: "4px 12px", borderRadius: "6px", fontSize: "0.8rem", fontWeight: 600, border: "none", cursor: "pointer",
               background: viewMode === "airline" ? "#fff" : "transparent",
@@ -179,6 +182,7 @@ export default function FaresPage() {
               color: viewMode === "ota" ? "#0f172a" : "#64748b",
               boxShadow: viewMode === "ota" ? "0 1px 3px rgba(0,0,0,0.1)" : "none"
             }}>By OTA</button>
+            </div>
           </div>
         </div>
 

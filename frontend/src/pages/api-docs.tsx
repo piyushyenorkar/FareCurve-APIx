@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Code, Copy, Check, ExternalLink, Server, Shield, Database, Activity } from "lucide-react";
+import { Code, Copy, Check, CheckCircle, ExternalLink, Server, Shield, Database, Activity, TerminalSquare, Search } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
+import { ChartAIButton } from "../components/ChartAIButton";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -129,9 +130,12 @@ export default function APIDocsPage() {
 
   return (
     <div>
-      <h1 style={{ fontSize: "1.75rem", fontWeight: 800, marginBottom: "0.25rem" }}>
-        <span className="gradient-text">API for NSO & RBI <InfoTooltip text="RESTful JSON endpoints that the National Statistical Office and Reserve Bank of India can consume directly for CPI augmentation." /></span>
-      </h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.25rem" }}>
+        <h1 style={{ fontSize: "1.75rem", fontWeight: 800, margin: 0 }}>
+          <span className="gradient-text">API for NSO & RBI <InfoTooltip text="RESTful JSON endpoints that the National Statistical Office and Reserve Bank of India can consume directly for CPI augmentation." /></span>
+        </h1>
+        <ChartAIButton contextQuery="Explain the API endpoints available for NSO and RBI consumption." />
+      </div>
       <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "0.75rem" }}>
         Production-ready REST API — JSON responses consumable by any statistical system
       </p>

@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { Plane, Filter, Search } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { AirportSearch } from "../components/AirportSearch";
+import { ChartAIButton } from "../components/ChartAIButton";
 import { CustomDropdown } from "../components/CustomDropdown";
 
 const ROUTES = ["DEL-BOM", "DEL-BLR", "BOM-BLR", "DEL-CCU", "BLR-HYD", "MAA-DEL", "DEL-HYD", "BOM-CCU", "DEL-PNQ", "DEL-AMD", "BOM-GOI", "DEL-GOI", "DEL-LKO", "DEL-SXR", "DEL-JAI", "DEL-MAA"];
@@ -190,10 +191,13 @@ export default function BookingCurvePage() {
       </div>
       <div className="glass-card" style={{ marginBottom: "1.5rem" }}>
         {period && <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "1rem" }}>Period: {period}</p>}
-        <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "1rem" }}>
-          {route} Fare by Booking Window {airline !== "ALL" ? `— ${AIRLINE_OPTIONS.find((a: any) => a.value === airline)?.label}` : ""}
-        <InfoTooltip text="Average fares plotted against booking windows. Displays how prices rise leading up to departure." />
-        </h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
+            {route} Fare by Booking Window {airline !== "ALL" ? `— ${AIRLINE_OPTIONS.find((a: any) => a.value === airline)?.label}` : ""}
+            <InfoTooltip text="Average fares plotted against booking windows. Displays how prices rise leading up to departure." />
+          </h2>
+          <ChartAIButton contextQuery={`Analyze the booking window fares for ${route} on ${airline === "ALL" ? "All Airlines" : airline}.`} />
+        </div>
         {loading ? (
           <div className="animate-pulse flex flex-col gap-4 mt-4 w-full">
             <div className="h-[250px] bg-gray-100 rounded-xl w-full"></div>
@@ -229,9 +233,12 @@ export default function BookingCurvePage() {
       {/* Lead-Time Elasticity Curve */}
       {elasticityData.length > 1 && (
         <div className="glass-card" style={{ marginBottom: "1.5rem" }}>
-          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-            Lead-Time Elasticity Curve <InfoTooltip text="Shows the % price increase per day as departure approaches. Steeper curve = more aggressive dynamic pricing. This is the key metric PS asks for." />
-          </h2>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
+              Lead-Time Elasticity Curve <InfoTooltip text="Shows the % price increase per day as departure approaches. Steeper curve = more aggressive dynamic pricing. This is the key metric PS asks for." />
+            </h2>
+            <ChartAIButton contextQuery={`Analyze the Lead-Time Elasticity Curve for ${route} on ${airline === "ALL" ? "All Airlines" : airline}.`} />
+          </div>
           <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
             Price change velocity — how aggressively fares rise as departure nears
           </p>
@@ -274,9 +281,12 @@ export default function BookingCurvePage() {
       {/* Airline Comparison (only when "All Airlines" selected) */}
       {airline === "ALL" && comparisonData.length > 0 && comparisonData.some(d => d["6E"] || d["AI"] || d["SG"] || d["QP"] || d["IX"] || d["UK"]) && (
         <div className="glass-card">
-          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-            Airline Pricing Comparison <InfoTooltip text="Compares how different airlines price the same route across booking windows. Shows which airline is most aggressive with last-minute pricing." />
-          </h2>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
+              Airline Pricing Comparison <InfoTooltip text="Compares how different airlines price the same route across booking windows. Shows which airline is most aggressive with last-minute pricing." />
+            </h2>
+            <ChartAIButton contextQuery={`Compare the airline pricing for the ${route} route across different carriers.`} />
+          </div>
           <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
             {route} — fare curves across carriers
           </p>

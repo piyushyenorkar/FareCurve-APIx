@@ -3,6 +3,7 @@ import { api } from "../lib/api";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { InfoTooltip } from "../components/InfoTooltip";
 import { TimeFilter } from "../components/TimeFilter";
+import { ChartAIButton } from "../components/ChartAIButton";
 import { formatDate } from "../lib/formatDate";
 
 export default function ATFPage() {
@@ -57,8 +58,11 @@ export default function ATFPage() {
       ) : (
         <div className="glass-card">
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem"}}>
-            <h2 style={{fontSize:"1.1rem",fontWeight:700}}>FareCurve Index vs ATF Price</h2>
-            <TimeFilter value={timeFilter} onChange={setTimeFilter} layoutIdPrefix="atfFilter" />
+            <h2 style={{fontSize:"1.1rem",fontWeight:700, margin: 0}}>FareCurve Index vs ATF Price</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <ChartAIButton contextQuery="Analyze the correlation between the FareCurve Index and ATF (Aviation Turbine Fuel) Prices." />
+              <TimeFilter value={timeFilter} onChange={setTimeFilter} layoutIdPrefix="atfFilter" />
+            </div>
           </div>
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={chartData}>

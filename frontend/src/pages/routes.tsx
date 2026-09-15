@@ -7,6 +7,7 @@ import { InfoTooltip } from "../components/InfoTooltip";
 import { TimeFilter } from "../components/TimeFilter";
 import { AirportSearch } from "../components/AirportSearch";
 import { CustomDropdown } from "../components/CustomDropdown";
+import { ChartAIButton } from "../components/ChartAIButton";
 
 const ROUTES = ["DEL-BOM", "DEL-BLR", "BOM-BLR", "DEL-CCU", "BLR-HYD", "MAA-DEL", "DEL-HYD", "BOM-CCU", "DEL-PNQ", "DEL-AMD", "BOM-GOI", "DEL-GOI", "DEL-LKO", "DEL-SXR", "DEL-JAI", "DEL-MAA"];
 const COLORS = ["#3b82f6", "#8b5cf6", "#f43f5e", "#f97316", "#10b981", "#06b6d4", "#eab308", "#6366f1"];
@@ -45,7 +46,7 @@ const AIRPORTS = [
 ];
 
 export default function RoutesPage() {
-    const [selected, setSelected] = useState("DEL-BOM");
+  const [selected, setSelected] = useState("DEL-BOM");
   const [airline, setAirline] = useState("ALL");
   const [ota, setOta] = useState("ALL");
   const [customOrigin, setCustomOrigin] = useState("");
@@ -53,7 +54,7 @@ export default function RoutesPage() {
 
   const handleCustomRoute = () => {
     if (customOrigin.length >= 3 && customDest.length >= 3) {
-      setSelected(`${customOrigin.substring(0,3).toUpperCase()}-${customDest.substring(0,3).toUpperCase()}`);
+      setSelected(`${customOrigin.substring(0, 3).toUpperCase()}-${customDest.substring(0, 3).toUpperCase()}`);
     }
   };
 
@@ -91,8 +92,8 @@ export default function RoutesPage() {
       <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "2rem" }}>
         Track individual route indices — live from the database
       </p>
-        <div className="text-[11px] uppercase font-bold text-gray-500 mb-2 ml-1 tracking-wider">Top DGCA High-Traffic Routes</div>
-                  {/* Top DGCA Routes */}
+      <div className="text-[11px] uppercase font-bold text-gray-500 mb-2 ml-1 tracking-wider">Top DGCA High-Traffic Routes</div>
+      {/* Top DGCA Routes */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1.5rem" }}>
         {ROUTES.map(r => (
           <button key={r} onClick={() => setSelected(r)} style={{
@@ -114,28 +115,28 @@ export default function RoutesPage() {
           <AirportSearch placeholder="Origin (DEL)" value={customOrigin} onChange={setCustomOrigin} />
           <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
           <AirportSearch placeholder="Dest (BOM)" value={customDest} onChange={setCustomDest} />
-          <button onClick={handleCustomRoute} 
+          <button onClick={handleCustomRoute}
             style={{ padding: "0.5rem 1rem", borderRadius: "999px", background: "#0f172a", color: "#fff", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", border: "none" }}>
             Search
           </button>
         </div>
 
-                {/* Airline Filter */}
+        {/* Airline Filter */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", borderLeft: "1px solid #e2e8f0", paddingLeft: "1rem" }}>
-          <CustomDropdown 
-            options={AIRLINE_OPTIONS} 
-            value={airline} 
-            onChange={setAirline} 
-            icon={<Filter size={14} />} 
+          <CustomDropdown
+            options={AIRLINE_OPTIONS}
+            value={airline}
+            onChange={setAirline}
+            icon={<Filter size={14} />}
           />
         </div>
 
         {/* OTA Filter */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <CustomDropdown 
-            options={OTA_OPTIONS} 
-            value={ota} 
-            onChange={setOta} 
+          <CustomDropdown
+            options={OTA_OPTIONS}
+            value={ota}
+            onChange={setOta}
           />
         </div>
 
@@ -159,8 +160,11 @@ export default function RoutesPage() {
           </div>
         )}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <h2 style={{ fontSize: "1.1rem", fontWeight: 700 }}>{selected} — Index Trend</h2>
-          <TimeFilter value={timeFilter} onChange={setTimeFilter} layoutIdPrefix="routesFilter" />
+          <h2 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>{selected} — Index Trend</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <ChartAIButton contextQuery={`Analyze the index trend for the ${selected} route.`} />
+            <TimeFilter value={timeFilter} onChange={setTimeFilter} layoutIdPrefix="routesFilter" />
+          </div>
         </div>
         {loading ? (
           <div className="animate-pulse flex flex-col gap-4 mt-4 w-full">

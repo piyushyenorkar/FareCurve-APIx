@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { api } from "../lib/api";
 import dynamic from "next/dynamic";
+import { AlertTriangle, TrendingUp, TrendingDown, Info, Search } from "lucide-react";
 import { InfoTooltip } from "../components/InfoTooltip";
-import { TrendingUp, TrendingDown, Plane, MapPin } from "lucide-react";
+import { ChartAIButton } from "../components/ChartAIButton";
+import { Plane, MapPin } from "lucide-react";
 
 // Leaflet must be loaded client-side only (no SSR)
 const MapContainer = dynamic(() => import("react-leaflet").then(m => m.MapContainer), { ssr: false });
@@ -126,8 +128,10 @@ export default function HeatmapPage() {
         
         <div className="flex flex-col items-end gap-1">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Analysis Mode</span>
-          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm">
-            <span className={`text-sm font-semibold transition-colors ${!isBaseFare ? 'text-blue-600' : 'text-gray-400'}`}>Gross Fare</span>
+          <div className="flex items-center gap-4">
+            <ChartAIButton contextQuery="Analyze the sector heatmap, looking for regional pricing surges or cheap routes." />
+            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm">
+              <span className={`text-sm font-semibold transition-colors ${!isBaseFare ? 'text-blue-600' : 'text-gray-400'}`}>Gross Fare</span>
             <button 
               onClick={() => setIsBaseFare(!isBaseFare)}
               className={`w-12 h-6 rounded-full relative transition-colors duration-300 ${!isBaseFare ? 'bg-blue-600' : 'bg-emerald-500'}`}
@@ -136,6 +140,7 @@ export default function HeatmapPage() {
             </button>
             <span className={`text-sm font-semibold transition-colors ${isBaseFare ? 'text-emerald-600' : 'text-gray-400'}`}>Base Fare Only</span>
           </div>
+        </div>
         </div>
       </div>
 
