@@ -107,8 +107,21 @@ export default function RoutesPage() {
   const latest = history.length > 0 ? history[history.length - 1] : null;
 
   let chartData = history;
-  if (timeFilter === '7D') chartData = history.length > 7 ? history.slice(-7) : history;
-  else if (timeFilter === '30D') chartData = history.length > 30 ? history.slice(-30) : history;
+  if (timeFilter === '7D') {
+    chartData = history.length > 7 ? history.slice(-7) : history;
+  } else if (timeFilter === '30D') {
+    chartData = [...history];
+    while (chartData.length > 0 && chartData.length < 31) {
+      const firstDate = new Date(chartData[0].rawDate);
+      firstDate.setDate(firstDate.getDate() - 1);
+      chartData.unshift({
+        date: formatDate(firstDate.toISOString()),
+        value: null,
+        rawDate: firstDate.toISOString()
+      });
+    }
+    chartData = chartData.length > 31 ? chartData.slice(-31) : chartData;
+  }
 
   return (
     <div>

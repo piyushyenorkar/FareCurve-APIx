@@ -54,8 +54,21 @@ export default function ATFPage() {
   }
 
   let chartData = fullData;
-  if (timeFilter === '7D') chartData = fullData.length > 7 ? fullData.slice(-7) : fullData;
-  else if (timeFilter === '30D') chartData = fullData.length > 30 ? fullData.slice(-30) : fullData;
+  if (timeFilter === '7D') {
+    chartData = fullData.length > 7 ? fullData.slice(-7) : fullData;
+  } else if (timeFilter === '30D') {
+    chartData = [...fullData];
+    while (chartData.length > 0 && chartData.length < 31) {
+      const firstDate = new Date(chartData[0].rawDate);
+      firstDate.setDate(firstDate.getDate() - 1);
+      chartData.unshift({
+        date: formatDate(firstDate.toISOString()),
+        value: null,
+        rawDate: firstDate.toISOString()
+      });
+    }
+    chartData = chartData.length > 31 ? chartData.slice(-31) : chartData;
+  }
 
   return (
     <div>
