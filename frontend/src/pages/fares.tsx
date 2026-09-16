@@ -134,11 +134,11 @@ export default function FaresPage() {
       </p>
 
       {/* Origin Destination Search */}
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+      <div className="text-[11px] uppercase font-bold text-gray-500 mb-2 ml-1 tracking-wider">Top DGCA High-Traffic Routes</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem", marginBottom: "1.5rem" }}>
           {ROUTES.map(r => (
             <button key={r} onClick={() => setRoute(r)} style={{
-              padding: "0.5rem 1rem", borderRadius: 999, fontSize: "0.8rem", fontWeight: 600,
+              padding: "0.45rem 0.8rem", borderRadius: 999, fontSize: "0.8rem", fontWeight: 600,
               background: r === route ? "linear-gradient(135deg,#3b82f6,#06b6d4)" : "rgba(255,255,255,0.04)",
               border: r === route ? "none" : "1px solid rgba(255,255,255,0.08)",
               color: r === route ? "#fff" : "var(--text-secondary)",
@@ -147,10 +147,13 @@ export default function FaresPage() {
               <Plane size={12} style={{ display: "inline", marginRight: 4 }} />{r}
             </button>
           ))}
-        </div>
+      </div>
+      
+      {/* Filters Row */}
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ width: "1px", height: "24px", background: "#e2e8f0", margin: "0 0.5rem" }}></div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Search size={14} style={{ color: "#64748b" }} />
+          
           <AirportSearch placeholder="Origin (DEL)" value={customOrigin} onChange={setCustomOrigin} />
           <span style={{ color: "#64748b", fontSize: "0.8rem" }}>✈</span>
           <AirportSearch placeholder="Dest (BOM)" value={customDest} onChange={setCustomDest} />

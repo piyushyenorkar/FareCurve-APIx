@@ -301,7 +301,7 @@ export default function Home() {
             style={{ height: "38px", padding: "0 1rem" }}
           >
             <ShieldCheck size={14} />
-            88% Confidence
+            {latest ? Math.round(latest.confidence_pct || 95) : 95}% Confidence
             <span className="text-emerald-300 mx-1">•</span>
             <span className="font-semibold text-emerald-600">Last validated: {latest ? formatDate(latest.date || latest.computation_date) : "14 Sept"}</span>
           </div>
@@ -335,7 +335,7 @@ export default function Home() {
             <InfoTooltip text="Number of high-traffic domestic Indian flight routes (e.g., DEL-BOM, BLR-CCU) currently being scraped and analyzed in real-time." />
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-4xl font-bold tracking-tight text-gray-900">17</span>
+            <span className="text-4xl font-bold tracking-tight text-gray-900">22</span>
             <div className="text-sm text-gray-500">Top DGCA-traffic sectors</div>
           </div>
         </div>
@@ -411,7 +411,7 @@ export default function Home() {
           </p>
           <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
             <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
-              <Activity size={12} className="text-blue-500" /> {routesData.length > 0 ? routesData.length : 17} active
+              <Activity size={12} className="text-blue-500" /> 22 active
             </div>
             <Link href="/routes" className="text-sm font-bold text-blue-600 group-hover:text-blue-700 flex items-center gap-1">
               Explore <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -467,7 +467,7 @@ export default function Home() {
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
             Fare by sector
-            <span className="text-sm font-normal text-gray-500">(Top 6 of 17)</span>
+            <span className="text-sm font-normal text-gray-500">(Top 6 of 22)</span>
           </h3>
           <Link href="/routes" className="inline-flex items-center justify-center px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-full hover:bg-blue-100 transition-colors">
             Open route explorer <ArrowRight size={16} className="ml-2" />

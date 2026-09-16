@@ -28,7 +28,7 @@ export default function Sidebar() {
           </div>
           <h1 className="text-[22px] font-bold text-slate-800 tracking-tight leading-none">FareCurve</h1>
         </div>
-        <p className="text-[10px] text-slate-500 -mt-1 font-medium leading-tight ml-10" style={{ fontFamily: "var(--font-poppins), sans-serif" }}>Every fare has a story across time</p>
+        <p className="text-[10px] text-slate-500 -mt-1 font-medium leading-tight ml-2 whitespace-nowrap" style={{ fontFamily: "var(--font-poppins), sans-serif" }}>Every fare has a story across time</p>
       </div>
       {/* Navigation */}
       <nav className="flex gap-2 relative flex-1">
