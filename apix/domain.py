@@ -274,6 +274,21 @@ AIRLINE_SOURCES: tuple[SourceSpec, ...] = (
         weight_hint=1.0,
         tags=("gated", "lcc"),
     ),
+    SourceSpec(
+        slug="vistara",
+        display_name="Vistara",
+        source_type=SourceType.AIRLINE,
+        base_url="https://www.airvistara.com",
+        robots_url="https://www.airvistara.com/robots.txt",
+        search_path_template="/trip/flight-search",
+        carriers=("UK",),
+        tos_url="https://www.airvistara.com/in/en/terms-and-conditions",
+        documented_verdict=ComplianceVerdict.DENY,
+        governing_rule="Disallow: /trip/*",
+        notes="Vistara explicitly denies the /trip/ path which governs flight search. Must use reconstructed data.",
+        weight_hint=1.2,
+        tags=("gated", "fsc"),
+    ),
 )
 
 OTA_SOURCES: tuple[SourceSpec, ...] = (
