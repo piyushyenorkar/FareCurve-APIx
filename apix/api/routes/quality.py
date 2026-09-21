@@ -28,6 +28,10 @@ def current_quality():
         "live": row.observed_data_points,
         "reconstructed": row.reconstructed_data_points,
         "coverage_pct": float(row.coverage_pct) if row.coverage_pct else 0,
+        "outlier_points": row.outlier_points,
+        "sold_out_points": row.sold_out_points,
+        "failed_points": row.failed_points,
+        "blocked_points": row.blocked_points,
     }
 
 @router.get("/quality/history")
@@ -40,8 +44,20 @@ def quality_history(days: int = Query(30, ge=1, le=180)):
                 DataQualityLog.scope == "overall",
                 DataQualityLog.log_date >= cutoff,
             ))
-            .order_by(DataQualityLog.log_date)
+            .order_by(DataQualityLog.log_date.asc(), DataQualityLog.id.desc())
         ).all()
+    
+    # Deduplicate by log_date keeping the latest (highest id)
+    seen_dates = set()
+    deduped_rows = []
+    # Reverse so we see highest id first for a date, wait, actually we can just use a dict
+    date_map = {}
+    for r in rows:
+        # Since order is log_date asc, id desc, the first one we see for a date is the latest
+        if r.log_date not in date_map:
+            date_map[r.log_date] = r
+            deduped_rows.append(r)
+
     return [
         {
             "date": r.log_date.isoformat(),
@@ -51,5 +67,5 @@ def quality_history(days: int = Query(30, ge=1, le=180)):
             "live": r.observed_data_points,
             "reconstructed": r.reconstructed_data_points,
         }
-        for r in rows
+        for r in deduped_rows
     ]
