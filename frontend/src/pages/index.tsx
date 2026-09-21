@@ -41,22 +41,26 @@ export default function Home() {
   useEffect(() => setMounted(true), []);
 
   const PIPELINE_LOGS = [
-    { time: '05:00:01', level: 'INFO', module: 'scheduler', msg: 'Triggering hourly pipeline run...' },
-    { time: '05:00:03', level: 'INFO', module: 'scraper', msg: 'Connecting to proxy pool (12 active nodes)' },
-    { time: '05:00:05', level: 'INFO', module: 'scraper', msg: 'Fetching DEL-BOM fares (T+1 to T+45 windows)' },
-    { time: '05:00:18', level: 'INFO', module: 'scraper', msg: 'Success: Extracted 243 fare nodes for DEL-BOM', highlight: true },
-    { time: '05:00:20', level: 'INFO', module: 'scraper', msg: 'Fetching BLR-HYD fares (T+1 to T+45 windows)' },
-    { time: '05:00:33', level: 'INFO', module: 'scraper', msg: 'Success: Extracted 198 fare nodes for BLR-HYD', highlight: true },
-    { time: '05:01:45', level: 'INFO', module: 'processor', msg: 'Starting data cleaning and anomaly detection' },
-    { time: '05:01:46', level: 'WARN', module: 'processor', msg: 'Dropped 12 anomalous outliers (fares > 3σ)' },
-    { time: '05:01:48', level: 'INFO', module: 'indexer', msg: 'Computing Jevons Geometric Mean for 8 routes...' },
-    { time: '05:01:50', level: 'INFO', module: 'indexer', msg: 'Computed Base APIx Index: 123.39', highlight: true },
-    { time: '05:01:51', level: 'INFO', module: 'db', msg: 'Committed 1892 new fare records to SQLite', highlight: true },
-    { time: '05:01:51', level: 'INFO', module: 'scheduler', msg: 'Pipeline run complete. Next run in 58m 09s...' },
+    { time: '14:00:01', level: 'INFO', module: 'scheduler', msg: 'Triggering scheduled data pipeline (Cycle 2 of 3)...' },
+    { time: '14:00:03', level: 'INFO', module: 'acquisition', msg: 'Checking robots.txt compliance for source OTA_A...' },
+    { time: '14:00:05', level: 'INFO', module: 'acquisition', msg: 'Access permitted. Extracted live fares for DEL-BOM', highlight: true },
+    { time: '14:00:12', level: 'INFO', module: 'acquisition', msg: 'Checking robots.txt compliance for source Airline_B...' },
+    { time: '14:00:13', level: 'WARN', module: 'acquisition', msg: 'Access denied. Falling back to Reconstruction Engine.' },
+    { time: '14:00:16', level: 'INFO', module: 'acquisition', msg: 'Reconstructed Airline_B fare using DGCA base rates. Tagged [RECONSTRUCTED]', highlight: true },
+    { time: '14:00:25', level: 'INFO', module: 'cleaning', msg: 'Executing data hygiene: Deduplication and null removal...' },
+    { time: '14:00:32', level: 'WARN', module: 'cleaning', msg: 'Dropped 14 anomalous outliers (>3σ deviation)' },
+    { time: '14:00:40', level: 'INFO', module: 'indexer', msg: 'Computing Jevons Geometric Mean across 22 top routes...' },
+    { time: '14:00:50', level: 'INFO', module: 'indexer', msg: 'Computed All-India Composite Index (APIX): 123.05', highlight: true },
+    { time: '14:01:00', level: 'INFO', module: 'analytics', msg: 'Running Holt-Winters smoothing for 7-day future projections...' },
+    { time: '14:01:10', level: 'INFO', module: 'analytics', msg: 'Generated 42 PROCURE/HOLD/ADVISORY procurement signals', highlight: true },
+    { time: '14:01:20', level: 'INFO', module: 'delivery', msg: 'Updating centralized Postgres database with 45,620 quotes' },
+    { time: '14:01:30', level: 'INFO', module: 'delivery', msg: 'API Endpoints synchronized for NSO & RBI access', highlight: true },
+    { time: '14:01:35', level: 'INFO', module: 'scheduler', msg: 'Pipeline Cycle 2 complete. Next automated run in 8h 00m 00s.' },
   ];
 
   useEffect(() => {
     if (isLogsOpen) {
+      document.body.style.overflow = "hidden";
       setVisibleLogs(0);
       const interval = setInterval(() => {
         setVisibleLogs(v => {
@@ -67,7 +71,12 @@ export default function Home() {
           return v + 1;
         });
       }, 600); // Add a log every 600ms
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        document.body.style.overflow = "unset";
+      };
+    } else {
+      document.body.style.overflow = "unset";
     }
   }, [isLogsOpen]);
 
