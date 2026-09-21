@@ -67,6 +67,7 @@ def detect_anomalies(
         "source_slug", "travel_date", "observed_at", "carrier_code",
     ])
     df["route_key"] = df["origin"] + "-" + df["destination"]
+    df["total_fare"] = df["total_fare"].astype(float)
 
     anomalies = []
     for (route, window), group in df.groupby(["route_key", "booking_window"]):
@@ -147,10 +148,19 @@ def _store_anomalies(anomalies: list[dict]) -> None:
     """Persist detected anomalies to database."""
     if not anomalies:
         return
+        
+    # Deduplicate by key (route, window, classification) keeping the max deviation
+    deduped = {}
+    for a in anomalies:
+        key = (a["route"], a["booking_window"], a["classification"])
+        if key not in deduped or a["pct_above_mean"] > deduped[key]["pct_above_mean"]:
+            deduped[key] = a
+    anomalies_to_store = list(deduped.values())
+
     try:
         from datetime import date as date_type
         with session_scope() as s:
-            for a in anomalies:
+            for a in anomalies_to_store:
                 s.add(Anomaly(
                     detected_on=date_type.today(),
                     route_key=a["route"],
@@ -163,6 +173,7 @@ def _store_anomalies(anomalies: list[dict]) -> None:
                     rolling_mean=a["mean_fare"],
                     corroborating_sources=a["corroborating_sources"],
                     description=a["explanation"],
+                    source_breakdown={"source": a.get("source"), "carrier": a.get("carrier")},
                 ))
     except Exception as e:
         logger.error(f"Failed to store anomalies: {e}")
@@ -188,6 +199,8 @@ def get_recent_anomalies(limit: int = 50) -> list[dict]:
             "classification": r.flag_type,
             "explanation": r.description,
             "detected_at": str(r.detected_on),
+            "source": r.source_breakdown.get("source") if r.source_breakdown else None,
+            "carrier": r.source_breakdown.get("carrier") if r.source_breakdown else None,
         }
         for r in rows
     ]
