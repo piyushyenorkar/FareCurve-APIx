@@ -187,15 +187,15 @@ export default function RoutesPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "1rem", marginBottom: "2rem" }}>
             <div className="glass-card" style={{ textAlign: "center" }}>
               <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)" }}>Route Index</div>
-              <div style={{ fontSize: "2rem", fontWeight: 900, color: "#3b82f6" }}>{selected === 'DEL-BOM' ? '142.10' : (latest.value?.toFixed(2) || "—")}</div>
+              <div style={{ fontSize: "2rem", fontWeight: 900, color: "#3b82f6" }}>{latest.value?.toFixed(2) || "—"}</div>
             </div>
             <div className="glass-card" style={{ textAlign: "center" }}>
               <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)" }}>Mean Fare</div>
-              <div style={{ fontSize: "1.5rem", fontWeight: 800 }}>₹{selected === 'DEL-BOM' ? '7,842' : (latest.mean_fare?.toLocaleString() || "—")}</div>
+              <div style={{ fontSize: "1.5rem", fontWeight: 800 }}>₹{latest.mean_fare?.toLocaleString() || "—"}</div>
             </div>
             <div className="glass-card" style={{ textAlign: "center" }}>
               <div style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)" }}>Observations</div>
-              <div style={{ fontSize: "1.5rem", fontWeight: 800 }}>{selected === 'DEL-BOM' ? '426' : (latest.observations || 0)}</div>
+              <div style={{ fontSize: "1.5rem", fontWeight: 800 }}>{latest.observations || 0}</div>
             </div>
           </div>
         )}
