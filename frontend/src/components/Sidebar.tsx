@@ -20,8 +20,17 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 h-screen fixed left-0 top-0 bg-gradient-to-br from-[#e0f2fe]/90 to-white/90 backdrop-blur-md rounded-r-3xl flex flex-col py-4 px-4 z-50 border border-sky-100 border-l-0">
-            <div className="flex flex-col gap-1 mb-6 px-2 cursor-pointer">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (min-height: 900px) {
+          .fs-header {
+            margin-top: 2.5rem !important;
+            margin-bottom: 2rem !important;
+          }
+        }
+      `}} />
+      <aside className="w-64 h-screen fixed left-0 top-0 bg-gradient-to-br from-[#e0f2fe]/90 to-white/90 backdrop-blur-md rounded-r-3xl flex flex-col py-4 px-4 z-50 border border-sky-100 border-l-0">
+            <div className="flex flex-col gap-1 mb-6 px-2 cursor-pointer fs-header transition-all">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 flex items-center justify-center overflow-hidden">
             <img src="/FareCurve.png" alt="FareCurve Logo" className="w-8 h-8 object-contain" />
@@ -31,12 +40,13 @@ export default function Sidebar() {
         <p className="text-[10px] text-slate-500 -mt-1 font-medium leading-tight ml-2 whitespace-nowrap" style={{ fontFamily: "var(--font-poppins), sans-serif" }}>Every fare has a story across time</p>
       </div>
       {/* Navigation */}
-      <nav className="flex gap-2 relative flex-1">
-        {/* Continuous background rail for icons */}
-        <div className="absolute left-1 top-0 bottom-0 w-12 bg-white rounded-full z-0 shadow-md"></div>
+      <nav className="flex relative flex-1 flex-col justify-center">
+        <div className="flex gap-2 relative py-2">
+          {/* Continuous background rail for icons */}
+          <div className="absolute left-1 top-0 bottom-0 w-12 bg-white rounded-full z-0 shadow-md"></div>
 
-        {/* Icons Column */}
-        <div className="flex flex-col w-10 z-10 relative ml-2">
+          {/* Icons Column */}
+          <div className="flex flex-col w-10 z-10 relative ml-2">
           {links.map((link) => {
             const isActive = router.pathname === link.href;
             return (
@@ -67,7 +77,9 @@ export default function Sidebar() {
             );
           })}
         </div>
+        </div>
       </nav>
 </aside>
+    </>
   );
 }

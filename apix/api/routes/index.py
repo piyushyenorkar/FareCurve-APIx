@@ -33,7 +33,7 @@ def index_route(
     return get_index_history(route_key=route_key, limit=limit)
 
 @router.get("/index/booking-curve/{origin}/{destination}")
-def booking_curve(origin: str, destination: str):
+def booking_curve(origin: str, destination: str, carrier: str = None, source: str = None):
     """Booking-window curve: price at T+1, T+7, T+15, T+30, T+45."""
     from datetime import date, timedelta
     from sqlalchemy import select, and_, func
@@ -45,8 +45,7 @@ def booking_curve(origin: str, destination: str):
     lookback = today - timedelta(days=7)
 
     with session_scope() as s:
-        rows = s.execute(
-            select(
+        q = select(
                 CleanedFare.booking_window_days,
                 func.avg(CleanedFare.total_fare).label("avg_fare"),
                 func.min(CleanedFare.total_fare).label("min_fare"),
@@ -57,7 +56,14 @@ def booking_curve(origin: str, destination: str):
                 CleanedFare.observation_date >= lookback,
                 CleanedFare.included_in_index == True,
                 CleanedFare.total_fare.isnot(None),
-            )).group_by(CleanedFare.booking_window_days)
+            ))
+        if carrier:
+            q = q.where(CleanedFare.carrier_code == carrier)
+        if source:
+            q = q.where(CleanedFare.source_slug == source)
+        
+        rows = s.execute(
+            q.group_by(CleanedFare.booking_window_days)
             .order_by(CleanedFare.booking_window_days)
         ).all()
 
