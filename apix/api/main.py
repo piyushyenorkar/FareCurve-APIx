@@ -47,3 +47,16 @@ def root():
 @app.get("/health", tags=["Health"])
 def health():
     return {"status": "ok"}
+
+@app.get("/api/v1/debug-db")
+def debug_db():
+    try:
+        from apix.db.base import get_engine
+        from sqlalchemy import text
+        engine = get_engine()
+        with engine.connect() as conn:
+            res = conn.execute(text("SELECT 1")).scalar()
+            return {"status": "success", "result": res}
+    except Exception as e:
+        import traceback
+        return {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
