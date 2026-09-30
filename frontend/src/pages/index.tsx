@@ -40,6 +40,40 @@ export default function Home() {
 
   useEffect(() => setMounted(true), []);
 
+  // Countdown timer for next pipeline run (00:00, 08:00, 16:00 UTC)
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      // Current UTC hours
+      const utcHours = now.getUTCHours();
+      let nextRunUTC = new Date(now);
+      
+      if (utcHours < 8) {
+        nextRunUTC.setUTCHours(8, 0, 0, 0);
+      } else if (utcHours < 16) {
+        nextRunUTC.setUTCHours(16, 0, 0, 0);
+      } else {
+        // Next run is at midnight tomorrow UTC
+        nextRunUTC.setUTCDate(nextRunUTC.getUTCDate() + 1);
+        nextRunUTC.setUTCHours(0, 0, 0, 0);
+      }
+      
+      const diffMs = nextRunUTC.getTime() - now.getTime();
+      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
+      
+      const el = document.getElementById("countdown-timer");
+      if (el) {
+        el.innerText = `Next run: ${diffHrs}h ${diffMins}m ${diffSecs}s`;
+      }
+    };
+    
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const PIPELINE_LOGS = [
     { time: '14:00:01', level: 'INFO', module: 'scheduler', msg: 'Triggering scheduled data pipeline (Cycle 2 of 3)...' },
     { time: '14:00:03', level: 'INFO', module: 'acquisition', msg: 'Checking robots.txt compliance for source OTA_A...' },
@@ -295,9 +329,9 @@ export default function Home() {
             className="group flex items-center gap-2 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-600 justify-center cursor-pointer hover:bg-gray-50 hover:border-blue-200 transition-all flex-shrink-0"
             style={{ height: "38px", padding: "0 0.5rem 0 1rem" }}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-36">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span>Live • 3 min ago</span>
+              <span id="countdown-timer">Live • Calculating...</span>
             </div>
             <div className="flex items-center gap-1 bg-gray-100 group-hover:bg-blue-50 group-hover:text-blue-700 px-2.5 py-1 rounded-full text-[11px] font-bold text-gray-500 transition-colors ml-1">
               Logs <ArrowRight size={12} />
