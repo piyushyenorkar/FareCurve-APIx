@@ -104,6 +104,20 @@ class Settings(BaseSettings):
             url = "postgresql+psycopg://" + url[len("postgres://") :]
         elif url.startswith("postgresql://"):
             url = "postgresql+psycopg://" + url[len("postgresql://") :]
+
+        # Handle unencoded @ in passwords (e.g. Starcysih@123)
+        # If there are more than one @ signs after the scheme, the password
+        # contains a raw @ that needs URL-encoding.
+        after_scheme = url.split("://", 1)[1] if "://" in url else url
+        if after_scheme.count("@") > 1:
+            import re
+            match = re.match(r'^(postgresql\+psycopg://)([^:]+):(.+)@([^@]+)$', url)
+            if match:
+                scheme, user, password, hostpart = match.groups()
+                from urllib.parse import quote
+                safe_password = quote(password, safe='')
+                url = f"{scheme}{user}:{safe_password}@{hostpart}"
+
         return url
 
 

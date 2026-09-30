@@ -24,7 +24,7 @@ BASE_FARES: dict[str, float] = {
 }
 
 CARRIERS = ["6E", "UK", "AI", "SG", "QP", "IX", ]
-CARRIER_MULTIPLIERS = {"6E": 0.95, "UK": 1.10, "AI": 1.15, "SG": 0.92, "QP": 0.98, "IX": 1.0, : 0.90}
+CARRIER_MULTIPLIERS = {"6E": 0.95, "UK": 1.10, "AI": 1.15, "SG": 0.92, "QP": 0.98, "IX": 1.0}
 WINDOW_MULTIPLIERS = {1: 1.65, 7: 1.35, 15: 1.10, 30: 0.92, 45: 0.82}
 
 GATED_SOURCES = [s.slug for s in SOURCES if s.documented_verdict.value == "DENY"]
