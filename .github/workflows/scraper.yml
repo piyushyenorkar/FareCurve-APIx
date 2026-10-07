@@ -31,4 +31,4 @@ jobs:
         APIX_RESPECT_ROBOTS: "true"
       run: |
         # Run the scraper
-        python -m apix.cli pipeline run
+        python -m apix.cli pipeline-run
