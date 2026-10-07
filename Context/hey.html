@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SkyIndex — Technical Approach</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  width: 1280px;
+  padding: 32px 40px;
+}
+
+/* ── MAIN PIPELINE ── */
+.pipeline {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 20px;
+}
+.stage {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.stage-box {
+  border-radius: 14px;
+  padding: 16px 14px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.stage-num {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 4px;
+}
+.stage-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+.stage-details {
+  flex: 1;
+  margin-bottom: 10px;
+}
+.stage-details li {
+  font-size: 10.5px;
+  line-height: 1.55;
+  list-style: none;
+  padding-left: 14px;
+  position: relative;
+  opacity: 0.85;
+}
+.stage-details li::before {
+  content: '›';
+  position: absolute;
+  left: 2px;
+  font-weight: 700;
+  opacity: 0.5;
+}
+.stage-tech {
+  background: rgba(0,0,0,0.06);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-top: auto;
+}
+.stage-tech span {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  opacity: 0.7;
+}
+
+/* ── ARROW CONNECTORS ── */
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+  z-index: 3;
+}
+.arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── STAGE COLORS ── */
+.s1 .stage-box { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+.s1 .stage-title, .s1 .stage-num { color: #1e40af; }
+.s1 .stage-details li { color: #1e3a5f; }
+.s1 .stage-tech span { color: #1e40af; }
+
+.s2 .stage-box { background: linear-gradient(135deg, #f0fdfa, #ccfbf1); }
+.s2 .stage-title, .s2 .stage-num { color: #0f766e; }
+.s2 .stage-details li { color: #134e4a; }
+.s2 .stage-tech span { color: #0f766e; }
+
+.s3 .stage-box { background: linear-gradient(135deg, #fefce8, #fef08a); }
+.s3 .stage-title, .s3 .stage-num { color: #854d0e; }
+.s3 .stage-details li { color: #713f12; }
+.s3 .stage-tech span { color: #854d0e; }
+
+.s4 .stage-box { background: linear-gradient(135deg, #faf5ff, #e9d5ff); }
+.s4 .stage-title, .s4 .stage-num { color: #6b21a8; }
+.s4 .stage-details li { color: #581c87; }
+.s4 .stage-tech span { color: #6b21a8; }
+
+.s5 .stage-box { background: linear-gradient(135deg, #fff7ed, #fed7aa); }
+.s5 .stage-title, .s5 .stage-num { color: #c2410c; }
+.s5 .stage-details li { color: #9a3412; }
+.s5 .stage-tech span { color: #c2410c; }
+
+.s6 .stage-box { background: linear-gradient(135deg, #fef2f2, #fecaca); }
+.s6 .stage-title, .s6 .stage-num { color: #b91c1c; }
+.s6 .stage-details li { color: #991b1b; }
+.s6 .stage-tech span { color: #b91c1c; }
+
+/* ── DATABASE BAR ── */
+.db-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 0 10px;
+}
+.db-line {
+  flex: 1;
+  height: 36px;
+  background: linear-gradient(90deg, #1e40af, #0f766e, #854d0e, #6b21a8, #c2410c, #b91c1c);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.db-line::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  border-radius: 10px;
+}
+.db-icon {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.db-icon svg {
+  width: 16px;
+  height: 16px;
+  color: white;
+}
+.db-icon span {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.db-arrows {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 4px;
+}
+.db-arrows .write, .db-arrows .read {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+.db-arrows .write {
+  background: rgba(34,197,94,0.3);
+  color: #86efac;
+}
+.db-arrows .read {
+  background: rgba(59,130,246,0.3);
+  color: #93c5fd;
+}
+
+/* ── BOTTOM: DATA SOURCES + CONSUMERS ── */
+.endpoints {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 0 10px;
+}
+.ep-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ep-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  border: 1px solid;
+}
+.ep-source {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0369a1;
+}
+.ep-consumer {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+.ep-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ── FORMULA BAR ── */
+.formula-bar {
+  margin-top: 14px;
+  padding: 10px 20px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+.formula-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.formula-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.formula-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  font-family: 'Courier New', monospace;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- MAIN PIPELINE -->
+  <div class="pipeline">
+    
+    <!-- STAGE 1 -->
+    <div class="stage s1">
+      <div class="stage-box">
+        <div class="stage-num">Phase 01</div>
+        <div class="stage-title">DATA<br>ACQUISITION</div>
+        <ul class="stage-details">
+          <li>Automated web scraping</li>
+          <li>5 Airlines + 6 OTAs</li>
+          <li>8 Routes × 5 Booking Windows</li>
+          <li>JS-rendered page handling</li>
+          <li>Ethical: robots.txt + rate-limit</li>
+        </ul>
+        <div class="stage-tech">
+          <span>Python + Playwright</span>
+          <span>GitHub Actions (Cron 3×/day)</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+
+    <!-- STAGE 2 -->
+    <div class="stage s2">
+      <div class="stage-box">
+        <div class="stage-num">Phase 02</div>
+        <div class="stage-title">DATA<br>CLEANING</div>
+        <ul class="stage-details">
+          <li>Deduplication</li>
+          <li>Outlier flagging (Z-Score ±3σ)</li>
+          <li>Fare decomposition</li>
+          <li>Base ÷ Tax ÷ Convenience fee</li>
+          <li>Sold-out/cancelled handling</li>
+        </ul>
+        <div class="stage-tech">
+          <span>Python + pandas</span>
+          <span>IQR / Z-Score pipeline</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+
+    <!-- STAGE 3 -->
+    <div class="stage s3">
+      <div class="stage-box">
+        <div class="stage-num">Phase 03</div>
+        <div class="stage-title">INDEX<br>COMPUTATION</div>
+        <ul class="stage-details">
+          <li>Laspeyres price-relative method</li>
+          <li>DGCA traffic-weighted routes</li>
+          <li>5-window sub-indices (T+1→T+45)</li>
+          <li>Daily / Weekly / Monthly output</li>
+          <li>Base period normalisation</li>
+        </ul>
+        <div class="stage-tech">
+          <span>numpy + pandas</span>
+          <span>APIx = Σ(wᵢ × PRᵢ) × 100</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+
+    <!-- STAGE 4 -->
+    <div class="stage s4">
+      <div class="stage-box">
+        <div class="stage-num">Phase 04</div>
+        <div class="stage-title">ANALYTICS &<br>FORECASTING</div>
+        <ul class="stage-details">
+          <li>Holt-Winters forecast (7-day)</li>
+          <li>Anomaly detection (±2.5σ)</li>
+          <li>Surge vs Data-Error classify</li>
+          <li>Buy/Wait consumer signal</li>
+          <li>TrustScore quality metric</li>
+        </ul>
+        <div class="stage-tech">
+          <span>statsmodels</span>
+          <span>Cross-source verification</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+
+    <!-- STAGE 5 -->
+    <div class="stage s5">
+      <div class="stage-box">
+        <div class="stage-num">Phase 05</div>
+        <div class="stage-title">API<br>LAYER</div>
+        <ul class="stage-details">
+          <li>10 RESTful JSON endpoints</li>
+          <li>Auto Swagger docs at /docs</li>
+          <li>NSO/RBI directly consumable</li>
+          <li>CORS-enabled, rate-limited</li>
+          <li>Compliance audit endpoint</li>
+        </ul>
+        <div class="stage-tech">
+          <span>FastAPI on Render</span>
+          <span>PostgreSQL on Supabase</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </div>
+
+    <!-- STAGE 6 -->
+    <div class="stage s6">
+      <div class="stage-box">
+        <div class="stage-num">Phase 06</div>
+        <div class="stage-title">INTERACTIVE<br>DASHBOARD</div>
+        <ul class="stage-details">
+          <li>9 analytical views</li>
+          <li>Booking-curve visualisation</li>
+          <li>Sector heatmaps</li>
+          <li>ATF fuel-price correlation</li>
+          <li>Real-time data quality gauge</li>
+        </ul>
+        <div class="stage-tech">
+          <span>Next.js + Recharts</span>
+          <span>Hosted on Vercel</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DATABASE BAR -->
+  <div class="db-bar">
+    <div class="db-line">
+      <div class="db-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        <span>PostgreSQL (Supabase) — 7 Normalised Tables</span>
+      </div>
+      <div class="db-arrows">
+        <span class="write">← WRITE (Phases 1–4)</span>
+        <span class="read">READ → (Phases 5–6)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA SOURCES + CONSUMERS -->
+  <div class="endpoints">
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div class="ep-label">Data Sources</div>
+      <div class="ep-group">
+        <span class="ep-badge ep-source">✈️ IndiGo</span>
+        <span class="ep-badge ep-source">✈️ Air India</span>
+        <span class="ep-badge ep-source">✈️ AI Express</span>
+        <span class="ep-badge ep-source">✈️ Akasa</span>
+        <span class="ep-badge ep-source">✈️ SpiceJet</span>
+        <span class="ep-badge ep-source">🌐 MakeMyTrip</span>
+        <span class="ep-badge ep-source">🌐 Ixigo</span>
+        <span class="ep-badge ep-source">📊 DGCA</span>
+        <span class="ep-badge ep-source">⛽ PPAC ATF</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+      <div class="ep-label">Consumers</div>
+      <div class="ep-group">
+        <span class="ep-badge ep-consumer">🏛️ NSO / MoSPI</span>
+        <span class="ep-badge ep-consumer">🏦 RBI</span>
+        <span class="ep-badge ep-consumer">📊 DGCA</span>
+        <span class="ep-badge ep-consumer">🔬 Researchers</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY METRICS BAR -->
+  <div class="formula-bar">
+    <div class="formula-item">
+      <span class="formula-label">Index Formula</span>
+      <span class="formula-value">APIx(t) = Σ(wᵢ × Pᵢ(t)/Pᵢ(0)) × 100</span>
+    </div>
+    <div class="formula-item">
+      <span class="formula-label">Routes</span>
+      <span class="formula-value">8 city-pairs</span>
+    </div>
+    <div class="formula-item">
+      <span class="formula-label">Windows</span>
+      <span class="formula-value">T+1, T+7, T+15, T+30, T+45</span>
+    </div>
+    <div class="formula-item">
+      <span class="formula-label">Frequency</span>
+      <span class="formula-value">Daily / Weekly / Monthly</span>
+    </div>
+    <div class="formula-item">
+      <span class="formula-label">Validation</span>
+      <span class="formula-value">Backtested vs DGCA data</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
